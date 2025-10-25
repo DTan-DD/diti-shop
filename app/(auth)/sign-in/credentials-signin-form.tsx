@@ -1,7 +1,7 @@
 "use client";
-import { redirect, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
-import { Button } from "../../../components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "../../../components/ui/input";
 import Link from "next/link";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../../../components/ui/form";
