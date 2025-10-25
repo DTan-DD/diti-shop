@@ -19,10 +19,16 @@ export function toast({
   const message = typeof title === "string" ? title : "";
   const desc = typeof description === "string" ? description : undefined;
 
-  // Chọn type dựa vào variant
+  const baseStyle = "text-green-600 font-medium border-none";
+  const styles = {
+    default: `${baseStyle} bg-green-100`,
+    destructive: `${baseStyle} bg-red-600`,
+  };
+
   if (variant === "destructive") {
     return sonnerToast.error(message, {
       description: desc,
+      className: styles.destructive,
       action: action as any,
       ...props,
     });
@@ -30,6 +36,8 @@ export function toast({
 
   return sonnerToast(message, {
     description: desc,
+    unstyled: true,
+    className: styles.default,
     action: action as any,
     ...props,
   });

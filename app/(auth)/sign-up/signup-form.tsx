@@ -12,7 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { UserSignUpSchema } from "@/lib/validator";
 import { Separator } from "@/components/ui/separator";
-import { isRedirectError } from "next/dist/client/components/redirect-error";
+// import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { APP_NAME } from "@/lib/constants";
 
 const signUpDefaultValues =
@@ -58,9 +58,9 @@ export default function SignUpForm() {
       });
       redirect(callbackUrl);
     } catch (error) {
-      if (isRedirectError(error)) {
-        throw error;
-      }
+      //   if (isRedirectError(error)) {
+      //     throw error;
+      //   }
       toast({
         title: "Error",
         description: "Invalid email or password",

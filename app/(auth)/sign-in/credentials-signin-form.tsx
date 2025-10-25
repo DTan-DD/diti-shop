@@ -12,8 +12,9 @@ import { signInWithCredentials } from "@/lib/actions/user.actions";
 import { toast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { UserSignInSchema } from "@/lib/validator";
-import { isRedirectError } from "next/dist/client/components/redirect-error";
+// import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { APP_NAME } from "@/lib/constants";
+import { useRouter } from "next/navigation";
 
 const signInDefaultValues =
   process.env.NODE_ENV === "development"
@@ -27,6 +28,7 @@ const signInDefaultValues =
       };
 
 export default function CredentialsSignInForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
@@ -43,11 +45,12 @@ export default function CredentialsSignInForm() {
         email: data.email,
         password: data.password,
       });
-      redirect(callbackUrl);
+      //   redirect(callbackUrl);
+      router.push(callbackUrl);
     } catch (error) {
-      if (isRedirectError(error)) {
-        throw error;
-      }
+      //   if (isRedirectError(error)) {
+      //     throw error;
+      //   }
       toast({
         title: "Error",
         description: "Invalid email or password",
