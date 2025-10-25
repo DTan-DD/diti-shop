@@ -1,10 +1,10 @@
 "use client";
 import { redirect, useSearchParams } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
 import Link from "next/link";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../../../components/ui/form";
 import { useForm } from "react-hook-form";
 import { IUserSignIn } from "@/types";
 import { signInWithCredentials } from "@/lib/actions/user.actions";
