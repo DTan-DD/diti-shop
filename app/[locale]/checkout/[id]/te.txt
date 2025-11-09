@@ -1,0 +1,126 @@
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
+import { useCartValidation } from '@/hooks/useCartValidation';
+import CartValidationDialog from '@/components/CartValidationDialog';
+import useCartStore from '@/lib/stores/useCartStore';
+import { createOrder } from '@/lib/actions/order.actions';
+import { toast } from 'sonner';
+
+export default function CheckoutPage() {
+  const router = useRouter();
+  const { cart } = useCartStore();
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  
+  const {
+    validateCart,
+    fixCartAndContinue,
+    removeOutOfStockItems,
+    closeDialog,
+    validationState,
+  } = useCartValidation();
+
+  const handlePlaceOrder = async () => {
+    // BƯỚC 1: Validate cart stock
+    const isValid = await validateCart();
+    
+    if (!isValid) {
+      // Dialog sẽ tự động show nếu có vấn đề
+      return;
+    }
+
+    // BƯỚC 2: Tạo order
+    setIsPlacingOrder(true);
+    
+    try {
+      const result = await createOrder(cart);
+      
+      if (result.success) {
+        toast.success('Order placed successfully!');
+        router.push(`/account/orders/${result.data.orderId}`);
+      } else {
+        // Có thể là stock đã thay đổi trong lúc processing
+        if (result.message.includes('stock')) {
+          // Validate lại để show dialog
+          await validateCart();
+        } else {
+          toast.error(result.message);
+        }
+      }
+    } catch (error) {
+      toast.error('Failed to place order');
+      console.error(error);
+    } finally {
+      setIsPlacingOrder(false);
+    }
+  };
+
+  const handleFixCart = async () => {
+    const success = await fixCartAndContinue();
+    
+    if (success) {
+      toast.success('Cart updated. You can now place your order.');
+      // Tự động place order sau khi fix
+      await handlePlaceOrder();
+    }
+  };
+
+  const handleRemoveItems = () => {
+    removeOutOfStockItems();
+    toast.info('Out of stock items removed from cart');
+  };
+
+  return (
+    <div className="container mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6">Checkout</h1>
+      
+      {/* Cart Summary */}
+      <div className="mb-6">
+        {cart.items.map((item) => (
+          <div key={item.clientId} className="flex justify-between py-2">
+            <span>{item.name} x {item.quantity}</span>
+            <span>${(item.price * item.quantity).toFixed(2)}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Total */}
+      <div className="border-t pt-4 mb-6">
+        <div className="flex justify-between text-xl font-bold">
+          <span>Total</span>
+          <span>${cart.totalPrice.toFixed(2)}</span>
+        </div>
+      </div>
+
+      {/* Place Order Button */}
+      <Button
+        onClick={handlePlaceOrder}
+        disabled={isPlacingOrder || validationState.isValidating || cart.items.length === 0}
+        className="w-full"
+        size="lg"
+      >
+        {isPlacingOrder || validationState.isValidating ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            {validationState.isValidating ? 'Checking stock...' : 'Placing order...'}
+          </>
+        ) : (
+          'Place Order'
+        )}
+      </Button>
+
+      {/* Validation Dialog */}
+      <CartValidationDialog
+        open={validationState.showDialog}
+        onClose={closeDialog}
+        errors={validationState.errors}
+        warnings={validationState.warnings}
+        hasErrors={validationState.hasErrors}
+        hasWarnings={validationState.hasWarnings}
+        onFixCart={handleFixCart}
+        onRemoveItems={handleRemoveItems}
+      />
+    </div>
+  );
+}

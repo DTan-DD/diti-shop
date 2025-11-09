@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import useCartStore from "@/hooks/use-cart-store";
 import { useToast } from "@/hooks/use-toast";
 import { OrderItem } from "@/types";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -15,7 +16,10 @@ export default function AddToCart({ item, minimal = false }: { item: OrderItem; 
 
   const { addItem } = useCartStore();
 
+  //PROMPT: add quantity state
   const [quantity, setQuantity] = useState(1);
+
+  const t = useTranslations();
 
   return minimal ? (
     <Button
@@ -24,14 +28,14 @@ export default function AddToCart({ item, minimal = false }: { item: OrderItem; 
         try {
           addItem(item, 1);
           toast({
-            description: "Added to Cart",
+            description: t("Product.Added to Cart"),
             action: (
               <Button
                 onClick={() => {
                   router.push("/cart");
                 }}
               >
-                Go to Cart
+                {t("Product.Go to Cart")}
               </Button>
             ),
           });
@@ -43,13 +47,15 @@ export default function AddToCart({ item, minimal = false }: { item: OrderItem; 
         }
       }}
     >
-      Add to Cart
+      {t("Product.Add to Cart")}
     </Button>
   ) : (
     <div className="w-full space-y-2">
       <Select value={quantity.toString()} onValueChange={(i) => setQuantity(Number(i))}>
         <SelectTrigger className="">
-          <SelectValue>Quantity: {quantity}</SelectValue>
+          <SelectValue>
+            {t("Product.Quantity")}: {quantity}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent position="popper">
           {Array.from({ length: item.countInStock }).map((_, i) => (
@@ -75,7 +81,7 @@ export default function AddToCart({ item, minimal = false }: { item: OrderItem; 
           }
         }}
       >
-        Add to Cart
+        {t("Product.Add to Cart")}
       </Button>
       <Button
         variant="secondary"
@@ -92,7 +98,7 @@ export default function AddToCart({ item, minimal = false }: { item: OrderItem; 
         }}
         className="w-full rounded-full "
       >
-        Buy Now
+        {t("Product.Buy Now")}
       </Button>
     </div>
   );

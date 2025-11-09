@@ -7,12 +7,22 @@ import User from "./lib/db/models/user.model";
 import Google from "next-auth/providers/google";
 import NextAuth, { type DefaultSession } from "next-auth";
 import authConfig from "./auth.config";
+import { Address } from "./types";
 
 declare module "next-auth" {
-  // eslint-disable-next-line no-unused-vars
   interface Session {
     user: {
       role: string;
+      phone: string;
+      hasPassword?: boolean; // ✅ dùng flag thay vì password
+      address?: {
+        fullName?: string;
+        country?: string;
+        province?: string;
+        district?: string;
+        ward?: string;
+        street?: string;
+      };
     } & DefaultSession["user"];
   }
 }
@@ -42,22 +52,36 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       async authorize(credentials) {
         await connectToDatabase();
-        if (credentials == null) return null;
+        if (!credentials) return null;
 
         const user = await User.findOne({ email: credentials.email });
+        if (!user) return null;
 
-        if (user && user.password) {
+        if (user.password) {
           const isMatch = await bcrypt.compare(credentials.password as string, user.password);
-          if (isMatch) {
-            return {
-              id: user._id,
-              name: user.name,
-              email: user.email,
-              role: user.role,
-            };
-          }
+          if (!isMatch) return null;
+        } else {
+          // nếu user login bằng OAuth, không có password
+          return {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            phone: user.phone,
+            address: user.address,
+            hasPassword: false,
+          };
         }
-        return null;
+
+        return {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          phone: user.phone,
+          address: user.address,
+          hasPassword: !!user.password, // ✅ thêm flag
+        };
       },
     }),
   ],
@@ -73,10 +97,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
         token.name = user.name || user.email!.split("@")[0];
         token.role = (user as { role: string }).role;
+        token.phone = (user as { phone?: string })?.phone ?? null;
+        token.address = (user as { address?: Address })?.address ?? null;
+        token.hasPassword = (user as { hasPassword?: boolean }).hasPassword ?? false; // ✅
       }
 
-      if (session?.user?.name && trigger === "update") {
-        token.name = session.user.name;
+      // 👇 Thêm phần này để handle update từ client
+      if (trigger === "update" && session?.user) {
+        if (session.user.name) token.name = session.user.name;
+        if (session.user.phone) token.phone = session.user.phone;
+        if (session.user.role) token.role = session.user.role;
+        if (session.user.address) token.address = session.user.address;
+        token.hasPassword = session.user.hasPassword ?? token.hasPassword;
       }
       return token;
     },
@@ -87,6 +119,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (trigger === "update") {
         session.user.name = user.name;
       }
+      session.user.phone = token.phone as string;
+      session.user.address = token.address as Address;
+      session.user.hasPassword = token.hasPassword as boolean; // ✅
       return session;
     },
   },

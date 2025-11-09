@@ -1,4 +1,5 @@
 import { IUserInput } from "@/types";
+import { de } from "date-fns/locale";
 import { Document, Model, model, models, Schema } from "mongoose";
 
 export interface IUser extends Document, IUserInput {
@@ -15,6 +16,15 @@ const userSchema = new Schema<IUser>(
     password: { type: String },
     image: { type: String },
     emailVerified: { type: Boolean, default: false },
+    phone: { type: String },
+    address: {
+      fullName: { type: String },
+      country: { type: String },
+      province: { type: String },
+      district: { type: String },
+      ward: { type: String },
+      street: { type: String },
+    },
   },
   {
     timestamps: true,

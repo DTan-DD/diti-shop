@@ -6,7 +6,7 @@ export interface IProduct extends Document, IProductInput {
   createdAt: Date;
   updatedAt: Date;
 }
-
+console.log("Product model file loaded");
 const productSchema = new Schema<IProduct>(
   {
     name: {
@@ -42,6 +42,16 @@ const productSchema = new Schema<IProduct>(
     countInStock: {
       type: Number,
       required: true,
+    },
+    availableStock: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    reservedStock: {
+      type: Number,
+      required: true,
+      default: 0,
     },
     tags: { type: [String], default: ["new arrival"] },
     colors: { type: [String], default: ["White", "Red", "Black"] },
@@ -91,6 +101,6 @@ const productSchema = new Schema<IProduct>(
   }
 );
 
-const Product = (models.Product as Model<IProduct>) || model<IProduct>("Product", productSchema);
+const Product = models.Product || model<IProduct>("Product", productSchema);
 
 export default Product;
