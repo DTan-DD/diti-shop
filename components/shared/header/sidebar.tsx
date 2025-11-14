@@ -2,11 +2,11 @@ import * as React from "react";
 import Link from "next/link";
 import { X, ChevronRight, UserCircle, MenuIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SignOut } from "@/lib/actions/user.actions";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { auth } from "@/auth";
 import { getLocale, getTranslations } from "next-intl/server";
 import { getDirection } from "@/i18n-config";
+import { handleLogoutClient } from "@/lib/handleLogoutClient";
 
 export default async function Sidebar({ categories }: { categories: string[] }) {
   const session = await auth();
@@ -88,7 +88,7 @@ export default async function Sidebar({ categories }: { categories: string[] }) 
               </Link>
             </DrawerClose>
             {session ? (
-              <form action={SignOut} className="w-full">
+              <form action={handleLogoutClient} className="w-full">
                 <Button className="w-full justify-start item-button text-base" variant="ghost">
                   {t("Header.Sign out")}
                 </Button>

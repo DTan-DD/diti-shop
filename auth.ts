@@ -12,17 +12,9 @@ import { Address } from "./types";
 declare module "next-auth" {
   interface Session {
     user: {
+      id: string;
       role: string;
-      phone: string;
       hasPassword?: boolean; // ✅ dùng flag thay vì password
-      address?: {
-        fullName?: string;
-        country?: string;
-        province?: string;
-        district?: string;
-        ward?: string;
-        street?: string;
-      };
     } & DefaultSession["user"];
   }
 }
@@ -95,33 +87,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             role: "user",
           });
         }
-        token.name = user.name || user.email!.split("@")[0];
+        token.id = user.id;
+        // token.name = user.name || user.email!.split("@")[0];
         token.role = (user as { role: string }).role;
-        token.phone = (user as { phone?: string })?.phone ?? null;
-        token.address = (user as { address?: Address })?.address ?? null;
         token.hasPassword = (user as { hasPassword?: boolean }).hasPassword ?? false; // ✅
+        token.email = user.email; // ✅ Thêm email
       }
 
       // 👇 Thêm phần này để handle update từ client
       if (trigger === "update" && session?.user) {
-        if (session.user.name) token.name = session.user.name;
-        if (session.user.phone) token.phone = session.user.phone;
         if (session.user.role) token.role = session.user.role;
-        if (session.user.address) token.address = session.user.address;
         token.hasPassword = session.user.hasPassword ?? token.hasPassword;
+        token.email = session.user.email ?? token.email; // ✅ Cập nhật từ client
       }
       return token;
     },
     session: async ({ session, user, trigger, token }) => {
-      session.user.id = token.sub as string;
+      session.user.id = token.id as string;
       session.user.role = token.role as string;
       session.user.name = token.name;
-      if (trigger === "update") {
-        session.user.name = user.name;
-      }
-      session.user.phone = token.phone as string;
-      session.user.address = token.address as Address;
       session.user.hasPassword = token.hasPassword as boolean; // ✅
+      session.user.email = token.email as string; // ✅ Đảm bảo session lấy email từ token
       return session;
     },
   },

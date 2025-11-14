@@ -25,16 +25,16 @@ export default async function SignUpPage(props: {
 
   return (
     <div className="w-full">
-      <SessionProvider session={session}>
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle className="text-2xl">Tạo tài khoản</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SignUpFormWrapper />
-          </CardContent>
-        </Card>
-      </SessionProvider>
+      {/* <SessionProvider session={session}> */}
+      <Card className="max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle className="text-2xl">Tạo tài khoản</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <SignUpFormWrapper />
+        </CardContent>
+      </Card>
+      {/* </SessionProvider> */}
     </div>
   );
 }

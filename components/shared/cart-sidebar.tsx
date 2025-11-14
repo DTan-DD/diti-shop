@@ -1,7 +1,8 @@
+"use client";
 import useCartStore from "@/hooks/use-cart-store";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button, buttonVariants } from "../ui/button";
 import { Separator } from "../ui/separator";
 import { ScrollArea } from "../ui/scroll-area";
@@ -9,12 +10,16 @@ import Image from "next/image";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { TrashIcon } from "lucide-react";
 import ProductPrice from "./product/product-price";
-import { FREE_SHIPPING_MIN_PRICE } from "@/lib/constants";
 import { useLocale, useTranslations } from "next-intl";
 import { getDirection } from "@/i18n-config";
 import useSettingStore from "@/hooks/use-setting-store";
 
 export default function CartSidebar() {
+  // const [hydrated, setHydrated] = useState(true);
+  const hydrated = useCartStore((s) => s._hasHydrated);
+
+  // if (!hydrated) return null;
+
   const {
     cart: { items, itemsPrice },
     updateItem,
@@ -29,6 +34,9 @@ export default function CartSidebar() {
 
   const t = useTranslations();
   const locale = useLocale();
+
+  //   useEffect(() => setHydrated(true), []);
+  if (!hydrated) return null;
   return (
     <div className="w-32 overflow-y-auto">
       <div className={`w-32 fixed  h-full ${getDirection(locale) === "rtl" ? "border-r" : "border-l"}`}>

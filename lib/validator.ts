@@ -298,3 +298,13 @@ export const SendOTPSchema = z.object({
   email: z.string().email("Email không hợp lệ"),
   name: z.string().min(3, "Tên phải có ít nhất 3 ký tự"),
 });
+
+export const ChangeEmailSchema = z.object({
+  newEmail: z.string().email("Email không hợp lệ"),
+  password: z.string().min(1, "Vui lòng nhập mật khẩu để xác nhận"),
+});
+
+export const VerifyEmailOTPSchema = z.object({
+  email: z.string().email(),
+  otp: z.string().length(6, "Mã OTP phải có 6 số"),
+});

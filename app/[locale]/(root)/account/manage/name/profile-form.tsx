@@ -10,37 +10,39 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { updateUserName } from "@/lib/actions/user.actions";
+import { getUserById } from "@/lib/actions/user.actions";
 import { UserNameSchema } from "@/lib/validator";
+import { useQuery } from "@tanstack/react-query";
+import { useUpdateProfile } from "@/hooks/useUpdateProfile";
 
 export const ProfileForm = () => {
   const router = useRouter();
-  const { data: session, update } = useSession();
+  // const { data: session, update } = useSession();
+  const { data: user } = useQuery<{ name?: string }>({
+    queryKey: ["user", "profile"],
+    queryFn: async () => await getUserById(), // ✅ QUAN TRỌNG: thêm queryFn
+  });
+
+  const updateProfile = useUpdateProfile();
   const form = useForm<z.infer<typeof UserNameSchema>>({
     resolver: zodResolver(UserNameSchema),
     defaultValues: {
-      name: session?.user?.name ?? "",
+      name: user?.name ?? "",
     },
   });
   const { toast } = useToast();
 
   async function onSubmit(values: z.infer<typeof UserNameSchema>) {
-    const res = await updateUserName(values);
+    // const res = await updateUserName(values);
+    const res = await updateProfile.mutateAsync(values);
     if (!res.success)
       return toast({
         variant: "destructive",
         description: res.message,
       });
 
-    const { data, message } = res;
-    const newSession = {
-      ...session,
-      user: {
-        ...session?.user,
-        name: data.name,
-      },
-    };
-    await update(newSession);
+    const { message } = res;
+
     toast({
       description: message,
     });

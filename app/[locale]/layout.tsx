@@ -8,6 +8,9 @@ import { routing } from "@/i18n/routing";
 import { notFound } from "next/navigation";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { cookies } from "next/headers";
+import Providers from "@/components/providers/QueryProvider";
+import { CartProvider } from "@/components/cart/cart-provider";
+import { SessionProvider } from "next-auth/react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -50,7 +53,13 @@ export default async function AppLayout({ params, children }: { params: { locale
     <html lang={locale} dir={getDirection(locale) === "rtl" ? "rtl" : "ltr"} suppressHydrationWarning>
       <body className={`min-h-screen ${geistSans.variable} ${geistMono.variable} antialiased`}>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <ClientProviders setting={{ ...setting, currency }}>{children}</ClientProviders>
+          <ClientProviders setting={{ ...setting, currency }}>
+            <Providers>
+              <SessionProvider>
+                <CartProvider>{children}</CartProvider>
+              </SessionProvider>
+            </Providers>
+          </ClientProviders>
         </NextIntlClientProvider>
       </body>
     </html>

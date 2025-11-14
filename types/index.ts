@@ -78,7 +78,7 @@ export type IOrderList = IOrderInput & {
 };
 export type OrderItem = z.infer<typeof OrderItemSchema>;
 export type Cart = z.infer<typeof CartSchema>;
-type IShippingAddress = z.infer<typeof ShippingAddressSchema>;
+export type IShippingAddress = z.infer<typeof ShippingAddressSchema>;
 export type ShippingAddress = IShippingAddress & {
   cityName?: string;
   provinceName?: string;
@@ -144,4 +144,85 @@ export interface IOTPVerification {
 export interface ISendOTP {
   email: string;
   name: string;
+}
+
+export interface IUpdateUserProfile {
+  address?: {
+    fullName?: string;
+    phone?: string;
+    country?: string;
+    province?: string;
+    district?: string;
+    ward?: string;
+    street?: string;
+  };
+  phone?: string;
+  avatar?: string;
+  name?: string;
+}
+
+export interface SendChangeEmailAlertProps {
+  oldEmail: string;
+  newEmail: string;
+  userName: string;
+  actionTime?: string;
+}
+
+/**
+ * Cart Document structure in MongoDB
+ * Đây là structure của cart khi lưu trong database
+ */
+export interface CartDocument {
+  _id: string;
+  userId: string;
+  items: OrderItem[];
+  itemsPrice: number;
+  taxPrice?: number;
+  shippingPrice?: number;
+  totalPrice: number;
+  shippingAddress?: ShippingAddress;
+  paymentMethod?: string;
+  deliveryDateIndex?: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Result khi merge cart (guest cart + DB cart)
+ */
+export interface MergeCartResult {
+  success: boolean;
+  data: Cart | null;
+  warnings: string[]; // Danh sách warnings (stock issues, removed items, etc.)
+  hasChanges: boolean; // Có thay đổi gì không (để show dialog)
+  message: string;
+}
+
+/**
+ * Cart sync status - để track trạng thái đồng bộ
+ */
+export interface CartSyncStatus {
+  isSyncing: boolean;
+  lastSyncedAt: Date | null;
+  syncError: string | null;
+}
+
+/**
+ * Stock validation result
+ */
+export interface StockValidationResult {
+  success: boolean;
+  validatedItems: OrderItem[];
+  warnings: string[];
+  hasIssues: boolean;
+}
+
+/**
+ * Cart API Response
+ */
+export interface CartAPIResponse {
+  success: boolean;
+  data?: Cart | CartDocument | null;
+  message: string;
+  warnings?: string[];
 }

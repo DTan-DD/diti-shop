@@ -10,22 +10,30 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { updateUserName, updateUserPhone } from "@/lib/actions/user.actions";
+import { getUserById } from "@/lib/actions/user.actions";
 import { UserNameSchema, UserPhoneSchema } from "@/lib/validator";
+import { useQuery } from "@tanstack/react-query";
+import { useUpdateProfile } from "@/hooks/useUpdateProfile";
 
 export const ProfileForm = () => {
   const router = useRouter();
-  const { data: session, update } = useSession();
+  const { data: user } = useQuery<{ phone?: string }>({
+    queryKey: ["user", "profile"],
+    queryFn: async () => await getUserById(), // ✅ QUAN TRỌNG: thêm queryFn
+  });
+
+  const updateProfile = useUpdateProfile();
   const form = useForm<z.infer<typeof UserPhoneSchema>>({
     resolver: zodResolver(UserPhoneSchema),
     defaultValues: {
-      phone: session?.user?.phone ?? "0134567890",
+      phone: user?.phone ?? "",
     },
   });
   const { toast } = useToast();
 
   async function onSubmit(values: z.infer<typeof UserPhoneSchema>) {
-    const res = await updateUserPhone(values);
+    // const res = await updateUserPhone(values);
+    const res = await updateProfile.mutateAsync(values);
     if (!res.success)
       return toast({
         variant: "destructive",
@@ -33,15 +41,15 @@ export const ProfileForm = () => {
       });
 
     const { data, message } = res;
-    const newSession = {
-      ...session,
-      user: {
-        ...session?.user,
-        phone: data.phone,
-      },
-    };
-    const kq = await update(newSession);
-    console.log(kq);
+    // const newSession = {
+    //   ...session,
+    //   user: {
+    //     ...session?.user,
+    //     phone: data.phone,
+    //   },
+    // };
+    // const kq = await update(newSession);
+    // console.log(kq);
     toast({
       description: message,
     });

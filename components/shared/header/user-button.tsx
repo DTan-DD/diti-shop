@@ -1,16 +1,18 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { auth } from "@/auth";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { SignOut } from "@/lib/actions/user.actions";
 import { cn } from "@/lib/utils";
 import { ChevronDownIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
+import { handleLogoutClient } from "@/lib/handleLogoutClient";
 
 export default async function UserButton() {
   const t = await getTranslations();
   const session = await auth();
+
   return (
     <div className="flex gap-2 items-center">
       <DropdownMenu>
@@ -48,7 +50,7 @@ export default async function UserButton() {
               )}
             </DropdownMenuGroup>
             <DropdownMenuItem className="p-0 mb-1">
-              <form action={SignOut} className="w-full">
+              <form action={handleLogoutClient} className="w-full">
                 <Button className="w-full py-4 px-2 h-4 justify-start" variant="ghost">
                   {t("Header.Sign out")}
                 </Button>

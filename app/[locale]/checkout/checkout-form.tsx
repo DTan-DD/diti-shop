@@ -27,16 +27,18 @@ import { useSession } from "next-auth/react";
 import { useCartValidation } from "@/hooks/useCartValidation";
 import CartValidationDialog from "@/components/shared/CartValidationDialog";
 import { Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { getUserById } from "@/lib/actions/user.actions";
 
 const shippingAddressDefaultValues =
   process.env.NODE_ENV === "development"
     ? {
         fullName: "Nguyễn Văn AV",
-        street: "123 Đường ABC",
+        street: "",
         city: "79", // Thành phố Hồ Chí Minh
-        province: "79", // Quận 1
+        province: "", // Quận 1
         postalCode: "700000",
-        phone: "0901234567",
+        phone: "",
         country: "Vietnam",
         district: "760",
         ward: "26737", // Phường Bến Nghé
@@ -148,7 +150,10 @@ const CheckoutForm = () => {
   const { toast } = useToast();
   const { data: session } = useSession();
   const router = useRouter();
-
+  const { data: user } = useQuery<{ phone?: string; address?: { fullName?: string; country?: string; province?: string; district?: string; ward?: string; street?: string } }>({
+    queryKey: ["user", "profile"],
+    queryFn: async () => await getUserById(), // ✅ QUAN TRỌNG: thêm queryFn
+  });
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   const { validateCart, fixCartAndContinue, removeOutOfStockItems, closeDialog, validationState } = useCartValidation();
@@ -223,43 +228,10 @@ const CheckoutForm = () => {
     setIsAddressSelected(true);
   };
 
-  // Separate useEffect for form values
-  // useEffect(() => {
-  //   if (!isMounted || !shippingAddress) return;
-  //   shippingAddressForm.setValue("fullName", shippingAddress.fullName);
-  //   shippingAddressForm.setValue("street", shippingAddress.street);
-  //   shippingAddressForm.setValue("postalCode", shippingAddress.postalCode);
-  //   shippingAddressForm.setValue("phone", shippingAddress.phone);
-  //   shippingAddressForm.setValue("country", shippingAddress.country);
-  // }, [isMounted, shippingAddress, shippingAddressForm]);
-
-  // Separate useEffect for cascading select state - only update when IDs change
-  // useEffect(() => {
-  //   if (!shippingAddress || provinces.length === 0) return;
-
-  //   // chỉ khi provinces load xong
-  //   if (provinces.length > 0) {
-  //     setSelectedProvinceId(shippingAddress.province || shippingAddressDefaultValues.province);
-  //     setSelectedDistrictId(shippingAddress.district || shippingAddressDefaultValues.district);
-  //     setSelectedWardId(shippingAddress.ward || shippingAddressDefaultValues.ward);
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [provinces.length]);
-
-  // useEffect(() => {
-  //   if (!shippingAddress || districts.length === 0) return;
-  //   if (districts.length > 0) setSelectedDistrictId(shippingAddress.district || shippingAddressDefaultValues.district);
-  // }, [districts.length]);
-
-  // useEffect(() => {
-  //   if (!shippingAddress || wards.length === 0) return;
-  //   if (wards.length > 0) setSelectedWardId(shippingAddress.ward || shippingAddressDefaultValues.ward);
-  // }, [wards.length]);
-
   useEffect(() => {
-    if (!session?.user?.address || provinces.length === 0) return;
+    if (!user?.address || provinces.length === 0) return;
 
-    const userAddress = session.user.address;
+    const userAddress = user.address;
 
     // Load user's saved address
     if (userAddress.province) {
@@ -269,35 +241,35 @@ const CheckoutForm = () => {
     if (userAddress.street) {
       shippingAddressForm.setValue("street", userAddress.street);
     }
-  }, [session?.user?.address, provinces.length]);
+  }, [user?.address, provinces.length]);
 
   useEffect(() => {
-    if (!session?.user?.address || districts.length === 0) return;
-    const userAddress = session.user.address;
+    if (!user?.address || districts.length === 0) return;
+    const userAddress = user.address;
     if (districts.length > 0 && userAddress.district) {
       setSelectedDistrictId((prev) => (prev !== userAddress.district ? userAddress.district || "" : prev));
       shippingAddressForm.setValue("district", userAddress.district);
     }
-  }, [districts.length, session?.user?.address?.district]);
+  }, [districts.length, user?.address?.district]);
 
   useEffect(() => {
-    if (!session?.user?.address || wards.length === 0) return;
-    const userAddress = session.user.address;
+    if (!user?.address || wards.length === 0) return;
+    const userAddress = user.address;
     if (wards.length > 0 && userAddress.ward) {
       setSelectedWardId((prev) => (prev !== userAddress.ward ? userAddress.ward || "" : prev));
       shippingAddressForm.setValue("ward", userAddress.ward);
     }
-  }, [wards.length, session?.user?.address?.ward]);
+  }, [wards.length, user?.address?.ward]);
 
-  // Also add session?.user?.name and phone to form
+  // Also add user?.name and phone to form
   useEffect(() => {
-    if (!session?.user) return;
+    if (!user) return;
 
-    if (session.user.address?.fullName) {
-      shippingAddressForm.setValue("fullName", session.user.address.fullName);
+    if (user.address?.fullName) {
+      shippingAddressForm.setValue("fullName", user.address.fullName);
     }
-    if (session.user.phone) {
-      shippingAddressForm.setValue("phone", session.user.phone);
+    if (user.phone) {
+      shippingAddressForm.setValue("phone", user.phone);
     }
   }, [session?.user]);
 

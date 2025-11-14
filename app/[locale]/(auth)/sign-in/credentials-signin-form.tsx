@@ -14,6 +14,7 @@ import { toast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { UserSignInSchema } from "@/lib/validator";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
+import useCartStore from "@/hooks/use-cart-store";
 
 const signInDefaultValues =
   process.env.NODE_ENV === "development"
@@ -32,6 +33,7 @@ export default function CredentialsSignInForm() {
   } = useSettingStore();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const { mergeGuestCartOnLogin } = useCartStore();
 
   const form = useForm<IUserSignIn>({
     resolver: zodResolver(UserSignInSchema),
@@ -46,6 +48,49 @@ export default function CredentialsSignInForm() {
         email: data.email,
         password: data.password,
       });
+
+      // STEP 2: Get user session
+      const session = await fetch("/api/auth/session").then((res) => res.json());
+      const userId = session?.user?.id;
+
+      if (!userId) {
+        toast({
+          title: "Error",
+          description: "Failed to get user session",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // STEP 3: Merge cart
+      const mergeResult = await mergeGuestCartOnLogin(userId);
+
+      // STEP 4: Show warnings if any
+      if (mergeResult.hasChanges && mergeResult.warnings.length > 0) {
+        // Show warning dialog/toast
+        toast({
+          title: "Cart Updated",
+          description: (
+            <div className="space-y-1">
+              <p>Your cart has been updated:</p>
+              <ul className="list-disc pl-4 text-sm">
+                {mergeResult.warnings.slice(0, 3).map((warning, i) => (
+                  <li key={i}>{warning}</li>
+                ))}
+              </ul>
+              {mergeResult.warnings.length > 3 && <p className="text-xs mt-1">+{mergeResult.warnings.length - 3} more items updated</p>}
+            </div>
+          ),
+          duration: 8000, // Show longer for warnings
+        });
+      } else {
+        // Success without issues
+        toast({
+          title: "Welcome back!",
+          description: "Signed in successfully",
+        });
+      }
+
       redirect(callbackUrl);
     } catch (error) {
       if (isRedirectError(error)) {

@@ -1,7 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
-import { OTPService } from "@/lib/actions/otp.service";
+import { OTPService } from "@/lib/services/otp.service";
 import { sendOTPEmail } from "@/emails/index";
 import { connectToDatabase } from "@/lib/db";
 import User from "@/lib/db/models/user.model";

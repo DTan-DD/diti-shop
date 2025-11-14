@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { getUserById } from "@/lib/actions/user.actions";
+import { getUserById, getUserById2 } from "@/lib/actions/user.actions";
 
 import UserEditForm from "./user-edit-form";
 import Link from "next/link";
@@ -19,7 +19,7 @@ export default async function UserEditPage(props: {
 
   const { id } = params;
 
-  const user = await getUserById(id);
+  const user = await getUserById2(id);
   if (!user) notFound();
   return (
     <main className="max-w-6xl mx-auto p-4">

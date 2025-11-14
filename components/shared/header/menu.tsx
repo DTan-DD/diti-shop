@@ -14,7 +14,8 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
         <LanguageSwitcher />
         <ThemeSwitcher />
         <UserButton />
-        {forAdmin ? null : <CartButton />}
+        {/* {forAdmin ? null : <CartButton />} */}
+        <CartButton />
       </nav>
       <nav className="md:hidden">
         <Sheet>

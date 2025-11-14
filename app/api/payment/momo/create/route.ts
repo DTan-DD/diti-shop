@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     const requestId = `${order._id}-${Date.now()}`;
     const orderInfo = `Payment for order ${order._id}`;
     // const amount = order.totalPrice.toString();
-    const amount = 100000;
+    const amount = order.totalPrice;
     const orderIdMomo = order._id.toString();
     const requestType = "payWithMethod";
 
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       partnerCode,
       accessKey,
       requestId,
-      amount: 100000,
+      amount: amount.toString(),
       orderId: orderIdMomo,
       orderInfo,
       redirectUrl,

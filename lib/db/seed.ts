@@ -36,14 +36,14 @@ const main = async () => {
       })),
     }));
     // Seed Address (provinces)
-    await Province.deleteMany();
-    const createdProvinces = await Province.insertMany(cleanedData);
+    // await Province.deleteMany();
+    // const createdProvinces = await Province.insertMany(cleanedData);
 
     // await WebPage.deleteMany();
     // await WebPage.insertMany(webpages);
 
-    // await Product.deleteMany();
-    // const createdProducts = await Product.insertMany(products.map((x) => ({ ...x, _id: undefined })));
+    await Product.deleteMany();
+    const createdProducts = await Product.insertMany(products.map((x) => ({ ...x, _id: undefined })));
 
     // await Review.deleteMany();
     // const rws = [];
@@ -80,11 +80,11 @@ const main = async () => {
     // const createdOrders = await Order.insertMany(orders);
     console.log({
       // createdUser,
-      // createdProducts,
+      createdProducts,
       // createdReviews,
       // createdOrders,
       // createdSetting,
-      createdProvincesCount: createdProvinces.length,
+      // createdProvincesCount: createdProvinces.length,
       message: "Seeded database successfully",
     });
     process.exit(0);
@@ -172,7 +172,7 @@ export const calcDeliveryDateAndPriceForSeed = ({ items, deliveryDateIndex }: { 
 
   const shippingPrice = deliveryDate.shippingPrice;
 
-  const taxPrice = round2(itemsPrice * 0.15);
+  const taxPrice = round2(itemsPrice * 0.1);
   const totalPrice = round2(itemsPrice + (shippingPrice ? round2(shippingPrice) : 0) + (taxPrice ? round2(taxPrice) : 0));
   return {
     availableDeliveryDates,

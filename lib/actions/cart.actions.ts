@@ -1,4 +1,5 @@
 "use server";
+import { auth } from "@/auth";
 // lib/actions/cart.actions.ts
 
 import { connectToDatabase } from "@/lib/db";
@@ -142,4 +143,26 @@ export async function syncCartWithLatestStock(items: OrderItem[]) {
       removedCount: 0,
     };
   }
+}
+
+/**
+ * Get current authenticated user ID
+ * Sử dụng để check xem user có đang login không
+ */
+export async function getCurrentUserId(): Promise<string | null> {
+  try {
+    const session = await auth();
+    return session?.user?.id || null;
+  } catch (error) {
+    console.error("Failed to get current user:", error);
+    return null;
+  }
+}
+
+/**
+ * Check if user is currently authenticated
+ */
+export async function isUserAuthenticated(): Promise<boolean> {
+  const userId = await getCurrentUserId();
+  return userId !== null;
 }
