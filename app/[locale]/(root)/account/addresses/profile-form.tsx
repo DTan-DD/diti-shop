@@ -62,12 +62,23 @@ export const ProfileForm = () => {
     },
   });
 
+  useEffect(() => {
+    form.setValue("phone", user?.phone || "");
+    form.setValue("fullName", user?.address?.fullName || "");
+    form.setValue("country", user?.address?.country || "Vietnam");
+    form.setValue("province", user?.address?.province || "");
+    form.setValue("district", user?.address?.district || "");
+    form.setValue("ward", user?.address?.ward || "");
+    form.setValue("street", user?.address?.street || "");
+  }, [user]);
+
   // Initialize cascading selects when session data loads
   useEffect(() => {
     if (!user?.address || provinces.length === 0) return;
     const { province } = user?.address;
     if (province) {
       setSelectedProvinceId(province);
+      form.setValue("province", province);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.address, provinces.length]);
@@ -89,7 +100,7 @@ export const ProfileForm = () => {
   }, [wards.length, user?.address?.ward]);
 
   async function onSubmit(values: z.infer<typeof UserAddressSchema>) {
-    console.log("values:: ", values);
+    // console.log("values:: ", values);
     try {
       const addressData = {
         ...values,
@@ -99,7 +110,7 @@ export const ProfileForm = () => {
         fullName: values.fullName.trim(),
       };
 
-      console.log(addressData);
+      // console.log(addressData);
 
       // const res = await updateUserAddress(addressData);
       const res = await updateProfile.mutateAsync({ address: addressData });

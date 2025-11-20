@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AddressPage() {
-  const session = await auth();
+  // const session = await auth();
   const { site } = await getSetting();
   const queryClient = getQueryClient();
 
@@ -24,8 +24,8 @@ export default async function AddressPage() {
   await queryClient.prefetchQuery({
     queryKey: ["user", "profile"],
     queryFn: async () => {
-      // const session = await auth();
-      console.log("session.user.id", session?.user.id);
+      const session = await auth();
+      // console.log("session.user.id", session?.user.id);
       if (!session || !session.user?.id) {
         throw new Error("User is not authenticated");
       }

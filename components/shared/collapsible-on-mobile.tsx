@@ -20,7 +20,7 @@ export default function CollapsibleOnMobile({ title, children }: { title: string
     return () => clearTimeout(timeout);
   }, [deviceType, searchParams]);
 
-  if (deviceType === "unknown") return null;
+  if (deviceType === null) return null;
 
   return (
     <Collapsible open={open}>

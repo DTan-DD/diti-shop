@@ -1,5 +1,5 @@
 // 📂 hooks/use-cart-store.ts
-// ⚠️ FILE MODIFY - REPLACE toàn bộ file hiện tại bằng code này
+// ⚠️ CRITICAL FIXES cho hydration errors
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -7,7 +7,6 @@ import { persist } from "zustand/middleware";
 import { Cart, OrderItem, ShippingAddress } from "@/types";
 import { calcDeliveryDateAndPrice } from "@/lib/actions/order.actions";
 import { syncCartWithLatestStock } from "@/lib/actions/cart.actions";
-// ⭐ NEW IMPORTS
 import { getUserCartFromDB, saveCartToDB, mergeAndValidateCart } from "@/lib/actions/cart-db.actions";
 
 const initialState: Cart = {
@@ -21,31 +20,25 @@ const initialState: Cart = {
   shippingAddress: undefined,
 };
 
-// ⭐ UPDATED INTERFACE
 interface CartState {
   cart: Cart;
-
-  // ⭐ NEW: Sync state tracking
   isLoggedIn: boolean;
   userId: string | null;
   isSyncing: boolean;
   lastSyncedAt: Date | null;
+  _hasHydrated: boolean;
+  setHasHydrated: (state: boolean) => void;
 
-  // === NEW ===
-  _hasHydrated: boolean; // trạng thái đã hydrate persist
-  setHasHydrated: (state: boolean) => void; // method để set
-
-  // Existing methods
   addItem: (item: OrderItem, quantity: number) => Promise<string>;
   updateItem: (item: OrderItem, quantity: number) => Promise<void>;
-  removeItem: (item: OrderItem) => Promise<void>;
+  removeItem: (clientId: string) => Promise<void>;
   clearCart: () => void;
+  clearCartLocalStorage: () => void;
   setShippingAddress: (shippingAddress: ShippingAddress) => Promise<void>;
   setPaymentMethod: (paymentMethod: string) => void;
   setDeliveryDateIndex: (index: number) => Promise<void>;
   syncCartStock: () => Promise<{ success: boolean; removedCount: number }>;
 
-  // ⭐ NEW METHODS
   initializeCart: (userId?: string) => Promise<void>;
   syncWithDB: () => Promise<void>;
   loadCartFromDB: (userId: string) => Promise<void>;
@@ -53,7 +46,6 @@ interface CartState {
   setAuthState: (isLoggedIn: boolean, userId: string | null) => void;
 }
 
-// ⭐ Debounce helper
 let syncTimeout: NodeJS.Timeout | null = null;
 const SYNC_DEBOUNCE_MS = 500;
 
@@ -61,52 +53,59 @@ const useCartStore = create(
   persist<CartState>(
     (set, get) => ({
       cart: initialState,
-
-      // ⭐ NEW: Initial sync state
       isLoggedIn: false,
       userId: null,
       isSyncing: false,
       lastSyncedAt: null,
-
-      // === NEW ===
       _hasHydrated: false,
-      setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
+      setHasHydrated: (state: boolean) => {
+        set({ _hasHydrated: state });
+      },
 
       // ============================================
-      // ⭐ NEW: Initialize Cart (called on app load)
+      // ✅ FIX: Initialize Cart with better error handling
       // ============================================
       initializeCart: async (userId?: string) => {
         const { isSyncing, lastSyncedAt } = get();
-        console.log("initializeCart", { isSyncing, lastSyncedAt, userId });
-        // ⭐ Avoid multiple simultaneous initializations
-        if (isSyncing) return;
 
-        // ⭐ Debounce initialization (optional)
-        if (lastSyncedAt && Date.now() - lastSyncedAt.getTime() < 5000) {
+        if (isSyncing) {
+          console.log("⏳ Cart initialization already in progress");
           return;
         }
 
-        if (userId) {
-          // User is logged in → Load from DB
-          await get().loadCartFromDB(userId);
-          set({ isLoggedIn: true, userId });
-        } else {
-          // Guest user → Use localStorage
+        if (lastSyncedAt && Date.now() - lastSyncedAt.getTime() < 5000) {
+          console.log("⏭️ Skipping initialization (too soon)");
+          return;
+        }
+
+        try {
+          if (userId) {
+            await get().loadCartFromDB(userId);
+            set({ isLoggedIn: true, userId });
+          } else {
+            set({ isLoggedIn: false, userId: null });
+          }
+        } catch (error) {
+          console.error("❌ Failed to initialize cart:", error);
+          // Fallback to guest mode
           set({ isLoggedIn: false, userId: null });
         }
       },
 
       // ============================================
-      // ⭐ NEW: Load Cart from Database
+      // ✅ FIX: Load from DB with timeout
       // ============================================
       loadCartFromDB: async (userId: string) => {
         try {
           set({ isSyncing: true });
 
-          const result = await getUserCartFromDB(userId);
-          console.log("loadCartFromDB result", result);
+          // ✅ Add timeout to prevent hanging
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("DB load timeout")), 5000));
+
+          const loadPromise = getUserCartFromDB(userId);
+          const result = (await Promise.race([loadPromise, timeoutPromise])) as Awaited<ReturnType<typeof getUserCartFromDB>>;
+
           if (result.success && result.data) {
-            // Load cart từ DB
             set({
               cart: result.data,
               userId,
@@ -114,31 +113,33 @@ const useCartStore = create(
               lastSyncedAt: new Date(),
             });
           } else {
-            // No cart in DB → Keep current cart (localStorage)
             set({
               userId,
               isLoggedIn: true,
             });
           }
         } catch (error) {
-          console.error("Failed to load cart from DB:", error);
+          console.error("❌ Failed to load cart from DB:", error);
+          // Continue with current cart
+          set({
+            userId,
+            isLoggedIn: true,
+          });
         } finally {
           set({ isSyncing: false });
         }
       },
 
       // ============================================
-      // ⭐ NEW: Sync Cart to Database (Debounced)
+      // ✅ FIX: Sync with proper debouncing
       // ============================================
       syncWithDB: async () => {
         const { isLoggedIn, userId, cart, isSyncing } = get();
-        console.log("syncWithDB", { isLoggedIn, userId, isSyncing });
+
         if (!isLoggedIn || !userId || isSyncing) return;
 
-        // Clear previous debounce
         if (syncTimeout) clearTimeout(syncTimeout);
 
-        // Debounce sync
         syncTimeout = setTimeout(async () => {
           try {
             set({ isSyncing: true });
@@ -149,32 +150,33 @@ const useCartStore = create(
               set({ lastSyncedAt: new Date() });
             }
           } catch (error) {
-            console.error("Sync error:", error);
+            console.error("❌ Sync error:", error);
           } finally {
-            // ⚡ set isSyncing false AFTER next tick, tránh loop
-            setTimeout(() => set({ isSyncing: false }), 0);
+            // ✅ Use setTimeout to avoid state update during render
+            setTimeout(() => {
+              const currentState = get();
+              if (currentState.isSyncing) {
+                set({ isSyncing: false });
+              }
+            }, 0);
           }
         }, SYNC_DEBOUNCE_MS);
       },
 
       // ============================================
-      // ⭐ NEW: Merge Guest Cart on Login
+      // ✅ FIX: Merge with better error handling
       // ============================================
       mergeGuestCartOnLogin: async (userId: string) => {
         try {
           set({ isSyncing: true });
-          console.log("mergeGuestCartOnLogin", { userId });
           const localCart = get().cart;
 
-          // Load DB cart
           const dbCartResult = await getUserCartFromDB(userId);
           const dbCart = dbCartResult.data;
 
-          // Merge and validate
           const mergeResult = await mergeAndValidateCart(userId, dbCart, localCart);
 
           if (mergeResult.success && mergeResult.data) {
-            // Update store with merged cart
             set({
               cart: mergeResult.data,
               userId,
@@ -190,70 +192,68 @@ const useCartStore = create(
 
           return { warnings: [], hasChanges: false };
         } catch (error) {
-          console.error("Merge cart error:", error);
+          console.error("❌ Merge cart error:", error);
           return { warnings: ["Failed to merge cart"], hasChanges: false };
         } finally {
           set({ isSyncing: false });
         }
       },
 
-      // ============================================
-      // ⭐ NEW: Set Auth State
-      // ============================================
       setAuthState: (isLoggedIn: boolean, userId: string | null) => {
         set({ isLoggedIn, userId });
       },
 
       // ============================================
-      // ⚠️ MODIFIED: Add Item (with DB sync)
+      // ✅ FIX: Add/Update/Remove với proper error handling
       // ============================================
       addItem: async (item: OrderItem, quantity: number) => {
-        const { items, shippingAddress } = get().cart;
-        const existItem = items.find((x) => x.product === item.product && x.color === item.color && x.size === item.size);
-        console.log("existItem", existItem);
-        if (existItem) {
-          if (existItem.countInStock < quantity + existItem.quantity) {
-            throw new Error("Not enough items in stock");
-          }
-        } else {
-          if (item.countInStock < item.quantity) {
-            throw new Error("Not enough items in stock");
-          }
-        }
+        try {
+          const { items, shippingAddress } = get().cart;
+          const existItem = items.find((x) => x.product === item.product && x.color === item.color && x.size === item.size);
 
-        const updatedCartItems = existItem
-          ? items.map((x) => (x.product === item.product && x.color === item.color && x.size === item.size ? { ...existItem, quantity: existItem.quantity + quantity } : x))
-          : [...items, { ...item, quantity }];
+          if (existItem) {
+            if (existItem.countInStock < quantity + existItem.quantity) {
+              throw new Error("Not enough items in stock");
+            }
+          } else {
+            if (item.countInStock < item.quantity) {
+              throw new Error("Not enough items in stock");
+            }
+          }
 
-        set({
-          cart: {
-            ...get().cart,
-            items: updatedCartItems,
-            ...(await calcDeliveryDateAndPrice({
+          const updatedCartItems = existItem
+            ? items.map((x) => (x.product === item.product && x.color === item.color && x.size === item.size ? { ...existItem, quantity: existItem.quantity + quantity } : x))
+            : [...items, { ...item, quantity }];
+
+          set({
+            cart: {
+              ...get().cart,
               items: updatedCartItems,
-              shippingAddress,
-            })),
-          },
-        });
+              ...(await calcDeliveryDateAndPrice({
+                items: updatedCartItems,
+                shippingAddress,
+              })),
+            },
+          });
 
-        // ⭐ Sync to DB if logged in
-        await get().syncWithDB();
+          // ✅ Non-blocking sync
+          get().syncWithDB().catch(console.error);
 
-        const foundItem = updatedCartItems.find((x) => x.product === item.product && x.color === item.color && x.size === item.size);
-        if (!foundItem) {
-          throw new Error("Item not found in cart");
+          const foundItem = updatedCartItems.find((x) => x.product === item.product && x.color === item.color && x.size === item.size);
+          if (!foundItem) {
+            throw new Error("Item not found in cart");
+          }
+          return foundItem.clientId;
+        } catch (error) {
+          console.error("❌ Add item error:", error);
+          throw error;
         }
-        return foundItem.clientId;
       },
 
-      // ============================================
-      // ⚠️ MODIFIED: Update Item (with DB sync)
-      // ============================================
       updateItem: async (item: OrderItem, quantity: number) => {
         const { items, shippingAddress } = get().cart;
         const exist = items.find((x) => x.product === item.product && x.color === item.color && x.size === item.size);
         if (!exist) return;
-        console.log("update item ", exist);
 
         const updatedCartItems = items.map((x) => (x.product === item.product && x.color === item.color && x.size === item.size ? { ...exist, quantity: quantity } : x));
 
@@ -268,17 +268,14 @@ const useCartStore = create(
           },
         });
 
-        // ⭐ Debounced sync to DB (for quantity changes)
-        await get().syncWithDB();
+        get().syncWithDB().catch(console.error);
       },
 
-      // ============================================
-      // ⚠️ MODIFIED: Remove Item (with DB sync)
-      // ============================================
-      removeItem: async (item: OrderItem) => {
+      removeItem: async (clientId: string) => {
         const { items, shippingAddress } = get().cart;
-        const updatedCartItems = items.filter((x) => x.product !== item.product || x.color !== item.color || x.size !== item.size);
-        console.log("updatedCartItems", updatedCartItems);
+        // const updatedCartItems = items.filter((x) => x.product !== item.product || x.color !== item.color || x.size !== item.size);
+        const updatedCartItems = items.filter((x) => x.clientId !== clientId);
+
         set({
           cart: {
             ...get().cart,
@@ -290,13 +287,9 @@ const useCartStore = create(
           },
         });
 
-        // ⭐ Sync to DB if logged in
-        await get().syncWithDB();
+        get().syncWithDB().catch(console.error);
       },
 
-      // ============================================
-      // ⚠️ MODIFIED: Set Shipping Address (with DB sync)
-      // ============================================
       setShippingAddress: async (shippingAddress: ShippingAddress) => {
         const { items } = get().cart;
         set({
@@ -309,14 +302,9 @@ const useCartStore = create(
             })),
           },
         });
-        console.log("shippingAddress", shippingAddress);
-        // ⭐ Sync to DB if logged in
-        await get().syncWithDB();
+        get().syncWithDB().catch(console.error);
       },
 
-      // ============================================
-      // ⚠️ MODIFIED: Set Payment Method (with DB sync)
-      // ============================================
       setPaymentMethod: (paymentMethod: string) => {
         set({
           cart: {
@@ -324,17 +312,11 @@ const useCartStore = create(
             paymentMethod,
           },
         });
-        console.log("paymentMethod", paymentMethod);
-        // ⭐ Sync to DB if logged in (no await needed)
-        get().syncWithDB();
+        get().syncWithDB().catch(console.error);
       },
 
-      // ============================================
-      // ⚠️ MODIFIED: Set Delivery Date Index (with DB sync)
-      // ============================================
       setDeliveryDateIndex: async (index: number) => {
         const { items, shippingAddress } = get().cart;
-        console.log("index", index);
         set({
           cart: {
             ...get().cart,
@@ -345,29 +327,26 @@ const useCartStore = create(
             })),
           },
         });
-
-        // ⭐ Sync to DB if logged in
-        await get().syncWithDB();
+        get().syncWithDB().catch(console.error);
       },
 
-      // ============================================
-      // EXISTING: Clear Cart (unchanged)
-      // ============================================
       clearCart: () => {
         set({
           cart: {
-            ...get().cart,
-            items: [],
+            ...initialState,
           },
         });
-        console.log("clearCart");
-        // ⭐ Sync to DB if logged in
-        get().syncWithDB();
+        get().syncWithDB().catch(console.error);
       },
 
-      // ============================================
-      // EXISTING: Sync Cart Stock (unchanged)
-      // ============================================
+      clearCartLocalStorage: () => {
+        set({
+          cart: {
+            ...initialState,
+          },
+        });
+      },
+
       syncCartStock: async () => {
         const { items } = get().cart;
         const result = await syncCartWithLatestStock(items);
@@ -380,7 +359,7 @@ const useCartStore = create(
             },
           });
         }
-        console.log("syncCartStock result", result);
+
         return {
           success: result.success,
           removedCount: result.removedCount,
@@ -389,17 +368,16 @@ const useCartStore = create(
     }),
     {
       name: "cart-store",
-      // ⭐ Chỉ persist cart data, không persist sync state
-      // Cast the partial result to CartState to satisfy the persist typing
       partialize: (state) => {
-        if (!state.cart) {
-          console.warn("Cart is undefined, using initialState");
-          return { cart: initialState } as CartState;
-        }
-        return { cart: state.cart } as unknown as CartState;
+        // ✅ FIX: Proper typing và fallback
+        const partialState = {
+          cart: state?.cart || initialState,
+        };
+        return partialState as unknown as CartState;
       },
       onRehydrateStorage: () => (state) => {
-        state?.setHasHydrated(true); // set _hasHydrated khi persist hydrate xong
+        console.log("🔄 Cart store rehydrated");
+        state?.setHasHydrated(true);
       },
     }
   )

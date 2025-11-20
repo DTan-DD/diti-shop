@@ -5,7 +5,7 @@ export default async function HomeLayout({ children }: { children: React.ReactNo
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-1 flex flex-col">{children}</main>
+      <main className="flex-1 flex flex-col mt-48 md:mt-35">{children}</main>
       <Footer />
     </div>
   );

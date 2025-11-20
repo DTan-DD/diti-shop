@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import React from "react";
 
 export default function CartPage() {
+  const hydrated = useCartStore((s) => s._hasHydrated);
   const {
     cart: { items, itemsPrice },
     updateItem,
@@ -27,6 +28,7 @@ export default function CartPage() {
   } = useSettingStore();
 
   const t = useTranslations();
+  if (!hydrated) return null;
   return (
     <div>
       <div className="grid grid-cols-1 md:grid-cols-4  md:gap-4">
@@ -46,7 +48,7 @@ export default function CartPage() {
               <Card className="rounded-none">
                 <CardHeader className="text-3xl pb-0">{t("Cart.Shopping Cart")}</CardHeader>
                 <CardContent className="p-4">
-                  <div className="flex justify-end border-b mb-4">{t("Cart.Price")}</div>
+                  {/* <div className="flex justify-end border-b mb-4">{t("Cart.Price")}</div> */}
 
                   {items.map((item) => (
                     <div key={item.clientId} className="flex flex-col md:flex-row justify-between py-4 border-b gap-4">
@@ -93,23 +95,23 @@ export default function CartPage() {
                               ))}
                             </SelectContent>
                           </Select>
-                          <Button variant={"outline"} onClick={() => removeItem(item)}>
+                          <Button variant={"outline"} onClick={() => removeItem(item.clientId)}>
                             {t("Cart.Delete")}
                           </Button>
                         </div>
                       </div>
                       <div>
                         <p className="text-right">
-                          {item.quantity > 1 && (
-                            <>
-                              {item.quantity} x
-                              <ProductPrice price={item.price} plain />
-                              <br />
-                            </>
-                          )}
+                          {/* {item.quantity > 1 && ( */}
+                          <>
+                            {t("Cart.Price")}: {item.quantity} x
+                            <ProductPrice price={item.price} plain />
+                            <br />
+                          </>
+                          {/* )} */}
 
                           <span className="font-bold text-lg">
-                            <ProductPrice price={item.price * item.quantity} plain />
+                            {t("Cart.Subtotal")}: <ProductPrice price={item.price * item.quantity} plain />
                           </span>
                         </p>
                       </div>

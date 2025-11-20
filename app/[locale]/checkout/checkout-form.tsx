@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -29,6 +31,7 @@ import CartValidationDialog from "@/components/shared/CartValidationDialog";
 import { Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getUserById } from "@/lib/actions/user.actions";
+import { validateCartStock } from "@/lib/actions/cart-db.actions";
 
 const shippingAddressDefaultValues =
   process.env.NODE_ENV === "development"
@@ -170,6 +173,8 @@ const CheckoutForm = () => {
     removeItem,
     clearCart,
     setDeliveryDateIndex,
+    syncWithDB,
+    isLoggedIn,
   } = useCartStore();
   const isMounted = useIsMounted();
 
@@ -198,6 +203,16 @@ const CheckoutForm = () => {
     resolver: zodResolver(ShippingAddressSchema),
     defaultValues: shippingAddress || shippingAddressDefaultValues,
   });
+
+  useEffect(() => {
+    shippingAddressForm.setValue("phone", user?.phone || "");
+    shippingAddressForm.setValue("fullName", user?.address?.fullName || "");
+    shippingAddressForm.setValue("country", user?.address?.country || "Vietnam");
+    shippingAddressForm.setValue("province", user?.address?.province || "");
+    shippingAddressForm.setValue("district", user?.address?.district || "");
+    shippingAddressForm.setValue("ward", user?.address?.ward || "");
+    shippingAddressForm.setValue("street", user?.address?.street || "");
+  }, [user]);
 
   // Get address names for display
   const getAddressNames = (provinceId: string, districtId: string, wardId: string) => {
@@ -278,19 +293,92 @@ const CheckoutForm = () => {
   const [isDeliveryDateSelected, setIsDeliveryDateSelected] = useState<boolean>(false);
 
   const handlePlaceOrder = async () => {
-    // BƯỚC 1: Validate cart stock
-    const isValid = await validateCart();
-
-    if (!isValid) {
-      // Dialog sẽ tự động show nếu có vấn đề
-      return;
-    }
     try {
       setIsPlacingOrder(true);
+
+      // ============================================
+      // ⭐ STEP 0: Final sync to DB (if logged in)
+      // ============================================
+      if (isLoggedIn) {
+        console.log("🔄 Final cart sync before order...");
+        await syncWithDB();
+
+        // Wait a bit for sync to complete
+        await new Promise((resolve) => setTimeout(resolve, 300));
+      }
+
+      // ============================================
+      // ⭐ STEP 1: Validate stock one more time
+      // ============================================
+      console.log("✅ Validating cart stock...");
+      const stockValidation = await validateCartStock(items);
+
+      if (stockValidation.hasIssues) {
+        // Show detailed warnings
+        toast({
+          title: "Cart Validation Failed",
+          description: (
+            <div className="space-y-1">
+              <p className="font-medium">Please review your cart:</p>
+              <ul className="list-disc pl-4 text-sm">
+                {stockValidation.warnings.map((warning, i) => (
+                  <li key={i}>{warning}</li>
+                ))}
+              </ul>
+            </div>
+          ),
+          variant: "destructive",
+          duration: 10000,
+        });
+
+        setIsPlacingOrder(false);
+
+        // Optionally: Redirect to cart page
+        router.push("/cart");
+        return;
+      }
+
+      // ============================================
+      // STEP 2: Validate delivery info (existing)
+      // ============================================
+      if (!shippingAddress) {
+        toast({
+          title: "Missing Information",
+          description: "Please provide shipping address",
+          variant: "destructive",
+        });
+        setIsPlacingOrder(false);
+        return;
+      }
+
+      if (!paymentMethod) {
+        toast({
+          title: "Missing Information",
+          description: "Please select a payment method",
+          variant: "destructive",
+        });
+        setIsPlacingOrder(false);
+        return;
+      }
+
+      if (deliveryDateIndex === undefined) {
+        toast({
+          title: "Missing Information",
+          description: "Please select a delivery date",
+          variant: "destructive",
+        });
+        setIsPlacingOrder(false);
+        return;
+      }
+
+      // ============================================
+      // STEP 3: Create order
+      // ============================================
+      console.log("📦 Creating order...");
       const res = await createOrder({
         items,
         shippingAddress,
-        expectedDeliveryDate: calculateFutureDate(availableDeliveryDates[deliveryDateIndex!].daysToDeliver),
+        expectedDeliveryDate: calculateFutureDate(availableDeliveryDates[deliveryDateIndex].daysToDeliver),
         deliveryDateIndex,
         paymentMethod,
         itemsPrice,
@@ -298,34 +386,66 @@ const CheckoutForm = () => {
         taxPrice,
         totalPrice,
       });
+
+      // ============================================
+      // STEP 4: Handle order response
+      // ============================================
       if (!res.success) {
-        // Có thể là stock đã thay đổi trong lúc processing
-        if (res.message.includes("stock")) {
-          // Validate lại để show dialog
-          await validateCart();
-        } else {
+        // Check if error is stock-related
+        if (res.message.includes("stock") || res.message.includes("available")) {
+          // Re-validate to show updated info
+          await validateCartStock(items);
+
           toast({
+            title: "Stock Issue",
+            description: "Some items in your cart are no longer available. Please review your cart.",
+            variant: "destructive",
+          });
+
+          router.push("/cart");
+        } else {
+          // Other errors
+          toast({
+            title: "Order Failed",
             description: res.message,
             variant: "destructive",
           });
         }
-      } else {
-        toast({
-          description: res.message,
-          variant: "default",
-        });
-        clearCart();
-        router.push(`/checkout/${res.data?.orderId}`);
-        // setIsPlacingOrder(false);
+
+        setIsPlacingOrder(false);
+        return;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+      // ============================================
+      // ⭐ STEP 5: Success - Clear cart (syncs to DB)
+      // ============================================
+      console.log("✅ Order created successfully");
+
       toast({
-        description: error.message,
+        title: "Order Placed!",
+        description: res.message || "Your order has been placed successfully",
+      });
+
+      // Clear cart (will auto-sync to DB if logged in)
+      clearCart();
+
+      // Redirect to order confirmation
+      // router.push(`/checkout/${res.data?.orderId}`);
+      console.log("res.data?.orderId", res.data?.orderId);
+      setTimeout(() => {
+        router.push(`/checkout/${res.data?.orderId}`);
+      }, 200);
+      // console.log("availableDeliveryDates[deliveryDateIndex!].daysToDeliver", availableDeliveryDates[deliveryDateIndex!].daysToDeliver);
+      // router.push(`/`);
+    } catch (error: any) {
+      console.error("❌ Place order error:", error);
+
+      toast({
+        title: "Error",
+        description: error.message || "Failed to place order. Please try again.",
         variant: "destructive",
       });
-    } finally {
+
       setIsPlacingOrder(false);
     }
   };
@@ -490,7 +610,6 @@ const CheckoutForm = () => {
                                   setSelectedDistrictId(value);
                                   setSelectedWardId("");
                                   field.onChange(value);
-                                  console.log(value);
                                 }}
                               >
                                 <FormControl>
@@ -666,7 +785,9 @@ const CheckoutForm = () => {
                 <Card className="md:ml-8">
                   <CardContent className="p-4">
                     <p className="mb-2">
-                      <span className="text-lg font-bold text-green-700">Giao hàng {formatDateTime(calculateFutureDate(availableDeliveryDates[deliveryDateIndex!].daysToDeliver)).dateOnly}</span>
+                      <span className="text-lg font-bold text-green-700">
+                        Giao hàng {deliveryDateIndex !== undefined && formatDateTime(calculateFutureDate(availableDeliveryDates[deliveryDateIndex].daysToDeliver)).dateOnly}
+                      </span>
                     </p>
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
@@ -695,7 +816,7 @@ const CheckoutForm = () => {
                               <Select
                                 value={item.quantity.toString()}
                                 onValueChange={(value) => {
-                                  if (value === "0") removeItem(item);
+                                  if (value === "0") removeItem(item.clientId);
                                   else updateItem(item, Number(value));
                                 }}
                               >
@@ -725,7 +846,7 @@ const CheckoutForm = () => {
 
                           <ul>
                             <RadioGroup
-                              value={availableDeliveryDates[deliveryDateIndex!].name}
+                              value={typeof deliveryDateIndex === "number" ? availableDeliveryDates[deliveryDateIndex]?.name : undefined}
                               onValueChange={(value) => setDeliveryDateIndex(availableDeliveryDates.findIndex((address) => address.name === value)!)}
                             >
                               {availableDeliveryDates.map((dd) => (

@@ -31,6 +31,7 @@ export const createOrder = async (clientSideCart: Cart) => {
       data: { orderId: createdOrder._id.toString() },
     };
   } catch (error) {
+    console.log(error);
     return { success: false, message: formatError(error) };
   }
 };
@@ -116,6 +117,7 @@ export const createOrderFromCart = async (clientSideCart: Cart, userId: string) 
       const result = await reserveStock(createdOrder._id.toString());
       console.log("Stock reserved:", result);
     } catch (error) {
+      console.error("Stock reservation failed:", error);
       await Order.deleteOne({ _id: createdOrder._id });
       throw error;
     }
@@ -490,42 +492,38 @@ async function getTopSalesProducts(date: DateRange) {
         },
       },
     },
-    // Step 1: Unwind orderItems array
+
     { $unwind: "$items" },
 
-    // Step 2: Group by productId to calculate total sales per product
     {
       $group: {
         _id: {
+          // productId có thể null — không dùng để validate
+          product: "$items.product",
           name: "$items.name",
           image: "$items.image",
-          _id: "$items.product",
         },
         totalSales: {
           $sum: { $multiply: ["$items.quantity", "$items.price"] },
-        }, // Assume quantity field in orderItems represents units sold
+        },
       },
     },
-    {
-      $sort: {
-        totalSales: -1,
-      },
-    },
+
+    { $sort: { totalSales: -1 } },
     { $limit: 6 },
 
-    // Step 3: Replace productInfo array with product name and format the output
     {
       $project: {
         _id: 0,
-        id: "$_id._id",
+        // fallback ID nếu productId null (để React không lỗi key)
+        id: {
+          $ifNull: ["$_id.product", { $concat: ["generated-", "$_id.name"] }],
+        },
         label: "$_id.name",
         image: "$_id.image",
         value: "$totalSales",
       },
     },
-
-    // Step 4: Sort by totalSales in descending order
-    { $sort: { _id: 1 } },
   ]);
 
   return result;

@@ -5,7 +5,7 @@ import React from "react";
 
 export default function CheckoutLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="p-4">
+    <div className="p-4 ">
       <header className="bg-card mb-4 border-b">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <Link href="/">

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default async function ChangePasswordPage() {
   const session = await auth();
-  console.log(session);
+  // console.log(session);
   const { site } = await getSetting();
 
   // Redirect if user doesn't have a password (OAuth users)

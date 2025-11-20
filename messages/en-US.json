@@ -29,9 +29,14 @@
     "Customer Service": "Customer Service",
     "About Us": "About Us",
     "Help": "Help",
-    "Site Menu": "Site Menu",
     "Subtotal": "Subtotal",
-    "Go to cart": "Go to cart"
+    "Go to cart": "Go to cart",
+    "Account": "Account",
+    "Shopping": "Shopping",
+    "Settings": "Settings",
+    "User": "User",
+    "Theme": "Theme",
+    "Language": "Language"
   },
   "Home": {
     "Categories to explore": "Categories to explore",

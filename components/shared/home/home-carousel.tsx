@@ -16,12 +16,12 @@ export function HomeCarousel({ items }: { items: ICarousel[] }) {
   const t = useTranslations("Home");
 
   return (
-    <Carousel dir="ltr" plugins={[plugin.current]} className="w-full mx-auto " onMouseEnter={plugin.current.stop} onMouseLeave={plugin.current.reset}>
+    <Carousel dir="ltr" plugins={[plugin.current]} className="w-full  mx-auto " onMouseEnter={plugin.current.stop} onMouseLeave={plugin.current.reset}>
       <CarouselContent>
         {items.map((item) => (
           <CarouselItem key={item.title}>
             <Link href={item.url}>
-              <div className="flex aspect-16/6 items-center justify-center p-6 relative -m-1">
+              <div className="flex aspect-16/8 md:aspect-16/6 items-center justify-center p-6 relative -m-1">
                 <Image src={item.image} alt={item.title} fill className="object-cover" priority />
                 <div className="absolute w-1/3 left-16 md:left-32 top-1/2 transform -translate-y-1/2">
                   <h2 className={cn("text-xl md:text-6xl font-bold mb-4 text-primary  ")}>{t(`${item.title}`)}</h2>

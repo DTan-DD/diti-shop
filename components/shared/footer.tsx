@@ -88,45 +88,47 @@ export default function Footer() {
                   height: "auto",
                 }}
               />{" "}
-              <Select
-                value={locale}
-                onValueChange={(value) => {
-                  router.push(pathname, { locale: value });
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t("Footer.Select a language")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {locales.map((lang, index) => (
-                    <SelectItem key={index} value={lang.code}>
-                      <Link className="w-full flex items-center gap-1" href={pathname} locale={lang.code}>
-                        <span className="text-lg">{lang.icon}</span> {lang.name}
-                      </Link>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                value={currency}
-                onValueChange={(value) => {
-                  setCurrency(value);
-                  window.scrollTo(0, 0);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t("Footer.Select a currency")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableCurrencies
-                    .filter((x) => x.code)
-                    .map((currency, index) => (
-                      <SelectItem key={index} value={currency.code}>
-                        {currency.name} ({currency.code})
+              <div className="flex-col gap-3 flex md:flex-row">
+                <Select
+                  value={locale}
+                  onValueChange={(value) => {
+                    router.push(pathname, { locale: value });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("Footer.Select a language")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {locales.map((lang, index) => (
+                      <SelectItem key={index} value={lang.code}>
+                        <Link className="w-full flex items-center gap-1" href={pathname} locale={lang.code}>
+                          <span className="text-lg">{lang.icon}</span> {lang.name}
+                        </Link>
                       </SelectItem>
                     ))}
-                </SelectContent>
-              </Select>
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={currency}
+                  onValueChange={(value) => {
+                    setCurrency(value);
+                    window.scrollTo(0, 0);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("Footer.Select a currency")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableCurrencies
+                      .filter((x) => x.code)
+                      .map((currency, index) => (
+                        <SelectItem key={index} value={currency.code}>
+                          {currency.name} ({currency.code})
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </div>

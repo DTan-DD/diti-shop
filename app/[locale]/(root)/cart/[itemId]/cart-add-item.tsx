@@ -11,8 +11,13 @@ import { notFound } from "next/navigation";
 import useCartStore from "@/hooks/use-cart-store";
 import useSettingStore from "@/hooks/use-setting-store";
 import { useTranslations } from "next-intl";
+import { useHydration } from "@/hooks/useHydration";
+import { useSafeNotFound } from "@/hooks/useSafeNotFound";
 
 export default function CartAddItem({ itemId }: { itemId: string }) {
+  const isHydrated = useHydration(); // ✅ USE HYDRATION HOOK
+  const hydrated = useCartStore((s) => s._hasHydrated);
+
   const {
     cart: { items, itemsPrice },
   } = useCartStore();
@@ -24,7 +29,15 @@ export default function CartAddItem({ itemId }: { itemId: string }) {
   const item = items.find((x) => x.clientId === itemId);
 
   const t = useTranslations();
-  if (!item) return notFound();
+
+  // ⚠️ Nếu item không tồn tại sau khi hydrate → redirect an toàn
+  useSafeNotFound(!item, "/cart");
+
+  // ⛔ NGỪNG RENDER trước khi hydrate xong để tránh mismatch
+  if (!isHydrated || !hydrated) return null;
+
+  // Tránh render khi đang redirect
+  if (!item) return null;
   return (
     <div>
       <div className="grid grid-cols-1 md:grid-cols-2 md:gap-4">

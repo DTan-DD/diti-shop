@@ -11,6 +11,7 @@ import { cookies } from "next/headers";
 import Providers from "@/components/providers/QueryProvider";
 import { CartProvider } from "@/components/cart/cart-provider";
 import { SessionProvider } from "next-auth/react";
+import ClientProvidersFixed from "@/components/shared/client-providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -53,13 +54,13 @@ export default async function AppLayout({ params, children }: { params: { locale
     <html lang={locale} dir={getDirection(locale) === "rtl" ? "rtl" : "ltr"} suppressHydrationWarning>
       <body className={`min-h-screen ${geistSans.variable} ${geistMono.variable} antialiased`}>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <ClientProviders setting={{ ...setting, currency }}>
+          <ClientProvidersFixed setting={{ ...setting, currency }}>
             <Providers>
               <SessionProvider>
                 <CartProvider>{children}</CartProvider>
               </SessionProvider>
             </Providers>
-          </ClientProviders>
+          </ClientProvidersFixed>
         </NextIntlClientProvider>
       </body>
     </html>

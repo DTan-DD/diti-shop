@@ -5,6 +5,7 @@ import { connectToDatabase } from "@/lib/db";
 // Cron job endpoint - chạy mỗi 10 phút
 // Vercel Cron: */10 * * * *
 // Hoặc dùng external service như cron-job.org
+export const maxDuration = 60;
 
 export async function GET(request: NextRequest) {
   try {

@@ -59,8 +59,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             name: user.name,
             email: user.email,
             role: user.role,
-            phone: user.phone,
-            address: user.address,
+            // phone: user.phone,
+            // address: user.address,
             hasPassword: false,
           };
         }
@@ -70,8 +70,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: user.name,
           email: user.email,
           role: user.role,
-          phone: user.phone,
-          address: user.address,
+          // phone: user.phone,
+          // address: user.address,
           hasPassword: !!user.password, // ✅ thêm flag
         };
       },

@@ -6,7 +6,6 @@ export interface IProduct extends Document, IProductInput {
   createdAt: Date;
   updatedAt: Date;
 }
-console.log("Product model file loaded");
 const productSchema = new Schema<IProduct>(
   {
     name: {

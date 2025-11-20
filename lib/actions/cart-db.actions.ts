@@ -42,6 +42,8 @@ export async function getUserCartFromDB(userId: string) {
         quantity: item.quantity,
         countInStock: item.countInStock,
         clientId: item.clientId,
+        availableStock: item.availableStock,
+        reservedStock: item.reservedStock,
       })),
       itemsPrice: cart.itemsPrice,
       taxPrice: cart.taxPrice,
@@ -73,7 +75,6 @@ export async function getUserCartFromDB(userId: string) {
 export async function saveCartToDB(userId: string, cartData: CartType) {
   try {
     await connectToDatabase();
-    console.log("Saving cart to database...", cartData);
     // Upsert: Update nếu có, create nếu chưa
     const cart = await Cart.findOneAndUpdate(
       { userId },
@@ -90,6 +91,8 @@ export async function saveCartToDB(userId: string, cartData: CartType) {
           size: item.size,
           quantity: item.quantity,
           countInStock: item.countInStock,
+          availableStock: item.availableStock,
+          reservedStock: item.reservedStock,
           clientId: item.clientId,
         })),
         itemsPrice: cartData.itemsPrice,

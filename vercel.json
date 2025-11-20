@@ -2,5 +2,11 @@
   "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
-  "installCommand": "npm install --legacy-peer-deps"
+  "installCommand": "npm install --legacy-peer-deps",
+  "crons": [
+    {
+      "path": "/api/cron/release-expired-stock",
+      "schedule": "*/5 * * * *"
+    }
+  ]
 }

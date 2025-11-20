@@ -16,7 +16,7 @@ export default async function Sidebar({ categories }: { categories: string[] }) 
   const t = await getTranslations();
   return (
     <Drawer direction={getDirection(locale) === "rtl" ? "right" : "left"}>
-      <DrawerTrigger className="header-button flex items-center !p-2  ">
+      <DrawerTrigger className="header-button flex w-full md:w-30 gap-2 items-center !p-2  ">
         <MenuIcon className="h-5 w-5 mr-1" />
         {t("Header.All")}
       </DrawerTrigger>
@@ -25,12 +25,12 @@ export default async function Sidebar({ categories }: { categories: string[] }) 
           {/* User Sign In Section */}
           <div className="dark bg-gray-800 text-foreground flex items-center justify-between  ">
             <DrawerHeader>
-              <DrawerTitle className="flex items-center">
+              <DrawerTitle className="flex items-center text-white">
                 <UserCircle className="h-6 w-6 mr-2" />
                 {session ? (
                   <DrawerClose asChild>
                     <Link href="/account">
-                      <span className="text-lg font-semibold">
+                      <span className="text-lg font-semibold ">
                         {t("Header.Hello")}, {session?.user.name}
                       </span>
                     </Link>

@@ -72,7 +72,7 @@ function CheckoutSummary({
                       if (data.success) {
                         window.location.href = data.payUrl; // Redirect đến MoMo
                       } else {
-                        console.log(data);
+                        // console.log(data);
                         toast({ description: data.message, variant: "destructive" });
                       }
                       // sendMail(order);

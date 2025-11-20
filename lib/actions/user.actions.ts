@@ -205,7 +205,7 @@ export const SignInWithGoogle = async () => {
 };
 export const SignOut = async () => {
   // Clear cart trước
-  useCartStore.getState().clearCart();
+  // useCartStore.getState().clearCart();
   const redirectTo = await signOut({ redirect: false, redirectTo: "/" });
   redirect(redirectTo.redirect);
 };
@@ -238,7 +238,9 @@ export async function getUserById() {
   await connectToDatabase();
   const session = await auth();
   const userId = session?.user?.id;
+  // console.log("userId", userId);
   const user = await User.findById(userId);
+  // console.log("user", user);
   if (!user) throw new Error("User not found");
   return JSON.parse(JSON.stringify(user)) as IUser;
 }

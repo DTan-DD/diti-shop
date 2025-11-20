@@ -14,13 +14,16 @@ export default function AddToCart({ item, minimal = false }: { item: OrderItem; 
   const router = useRouter();
   const { toast } = useToast();
 
-  const { addItem } = useCartStore();
+  const { addItem, _hasHydrated } = useCartStore();
 
   //PROMPT: add quantity state
   const [quantity, setQuantity] = useState(1);
 
   const t = useTranslations();
-
+  // console.log("item", item);
+  if (!_hasHydrated) {
+    return null;
+  }
   return minimal ? (
     <Button
       className="rounded-full w-auto"
@@ -40,6 +43,7 @@ export default function AddToCart({ item, minimal = false }: { item: OrderItem; 
             ),
           });
         } catch (error: any) {
+          console.log("1", error);
           toast({
             variant: "destructive",
             description: error.message,
@@ -58,7 +62,7 @@ export default function AddToCart({ item, minimal = false }: { item: OrderItem; 
           </SelectValue>
         </SelectTrigger>
         <SelectContent position="popper">
-          {Array.from({ length: item.countInStock }).map((_, i) => (
+          {Array.from({ length: item.availableStock }).map((_, i) => (
             <SelectItem key={i + 1} value={`${i + 1}`}>
               {i + 1}
             </SelectItem>
@@ -74,6 +78,7 @@ export default function AddToCart({ item, minimal = false }: { item: OrderItem; 
             const itemId = await addItem(item, quantity);
             router.push(`/cart/${itemId}`);
           } catch (error: any) {
+            console.log("2", error);
             toast({
               variant: "destructive",
               description: error.message,
@@ -90,6 +95,7 @@ export default function AddToCart({ item, minimal = false }: { item: OrderItem; 
             addItem(item, quantity);
             router.push(`/checkout`);
           } catch (error: any) {
+            console.log("3", error);
             toast({
               variant: "destructive",
               description: error.message,

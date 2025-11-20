@@ -42,29 +42,31 @@ const main = async () => {
     // await WebPage.deleteMany();
     // await WebPage.insertMany(webpages);
 
-    await Product.deleteMany();
-    const createdProducts = await Product.insertMany(products.map((x) => ({ ...x, _id: undefined })));
+    // await Product.deleteMany();
+    // const createdProducts = await Product.insertMany(products.map((x) => ({ ...x, _id: undefined })));
 
-    // await Review.deleteMany();
-    // const rws = [];
-    // for (let i = 0; i < createdProducts.length; i++) {
-    //   let x = 0;
-    //   const { ratingDistribution } = createdProducts[i];
-    //   for (let j = 0; j < ratingDistribution.length; j++) {
-    //     for (let k = 0; k < ratingDistribution[j].count; k++) {
-    //       x++;
-    //       rws.push({
-    //         ...reviews.filter((x) => x.rating === j + 1)[x % reviews.filter((x) => x.rating === j + 1).length],
-    //         isVerifiedPurchase: true,
-    //         product: createdProducts[i]._id,
-    //         user: createdUser[x % createdUser.length]._id,
-    //         updatedAt: Date.now(),
-    //         createdAt: Date.now(),
-    //       });
-    //     }
-    //   }
-    // }
-    // const createdReviews = await Review.insertMany(rws);
+    const createdUser = await User.find({ role: "User" });
+    const createdProducts = await Product.find({});
+    await Review.deleteMany();
+    const rws = [];
+    for (let i = 0; i < createdProducts.length; i++) {
+      let x = 0;
+      const { ratingDistribution } = createdProducts[i];
+      for (let j = 0; j < ratingDistribution.length; j++) {
+        for (let k = 0; k < ratingDistribution[j].count; k++) {
+          x++;
+          rws.push({
+            ...reviews.filter((x) => x.rating === j + 1)[x % reviews.filter((x) => x.rating === j + 1).length],
+            isVerifiedPurchase: true,
+            product: createdProducts[i]._id,
+            user: createdUser[x % createdUser.length]._id,
+            updatedAt: Date.now(),
+            createdAt: Date.now(),
+          });
+        }
+      }
+    }
+    const createdReviews = await Review.insertMany(rws);
 
     // await Order.deleteMany();
     // const orders = [];
@@ -80,8 +82,8 @@ const main = async () => {
     // const createdOrders = await Order.insertMany(orders);
     console.log({
       // createdUser,
-      createdProducts,
-      // createdReviews,
+      // createdProducts,
+      createdReviews,
       // createdOrders,
       // createdSetting,
       // createdProvincesCount: createdProvinces.length,
@@ -113,6 +115,8 @@ const generateOrder = async (i: number, users: any, products: any): Promise<IOrd
       category: product1.category,
       price: product1.price,
       countInStock: product1.countInStock,
+      availableStock: product1.availableStock,
+      reservedStock: product1.reservedStock,
     },
     {
       clientId: generateId(),
@@ -124,6 +128,8 @@ const generateOrder = async (i: number, users: any, products: any): Promise<IOrd
       category: product1.category,
       price: product2.price,
       countInStock: product1.countInStock,
+      availableStock: product1.availableStock,
+      reservedStock: product1.reservedStock,
     },
     {
       clientId: generateId(),
@@ -135,6 +141,8 @@ const generateOrder = async (i: number, users: any, products: any): Promise<IOrd
       category: product1.category,
       price: product3.price,
       countInStock: product1.countInStock,
+      availableStock: product1.availableStock,
+      reservedStock: product1.reservedStock,
     },
   ];
 

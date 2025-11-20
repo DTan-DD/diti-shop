@@ -26,7 +26,7 @@ export default async function ProfilePage() {
     queryKey: ["user", "profile"],
     queryFn: async () => {
       // const session = await auth();
-      console.log("session.user.id", session?.user.id);
+      // console.log("session.user.id", session?.user.id);
       if (!session || !session.user?.id) {
         throw new Error("User is not authenticated");
       }

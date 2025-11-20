@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const params = await searchParams;
   const session = await auth();
-  console.log("session", session);
+  // console.log("session", session);
   const isOAuthUser = !session?.user?.hasPassword;
   const user = await getUserById();
   return (

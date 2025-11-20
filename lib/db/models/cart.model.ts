@@ -17,6 +17,8 @@ interface ICartItem {
   size: string;
   quantity: number;
   countInStock: number;
+  availableStock: number;
+  reservedStock: number;
   clientId: string; // Unique identifier cho frontend
 }
 
@@ -78,6 +80,16 @@ const cartItemSchema = new Schema<ICartItem>(
       min: 1,
     },
     countInStock: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    availableStock: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    reservedStock: {
       type: Number,
       required: true,
       min: 0,

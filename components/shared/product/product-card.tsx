@@ -56,6 +56,8 @@ const AddButton = ({ product }: { product: IProduct }) => (
         size: product.sizes[0],
         color: product.colors[0],
         countInStock: product.countInStock,
+        availableStock: product.availableStock,
+        reservedStock: product.reservedStock,
         name: product.name,
         slug: product.slug,
         category: product.category,

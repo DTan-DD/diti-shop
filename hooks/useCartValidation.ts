@@ -108,7 +108,7 @@ export function useCartValidation() {
     // Remove items có error
     items.forEach((item) => {
       if (errorProductIds.has(item.product)) {
-        useCartStore.getState().removeItem(item);
+        useCartStore.getState().removeItem(item.clientId);
       }
     });
 

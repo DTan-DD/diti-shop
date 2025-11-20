@@ -31,7 +31,13 @@
     "Help": "Trợ giúp",
     "Site Menu": "Menu trang",
     "Subtotal": "Tạm tính",
-    "Go to cart": "Đến giỏ hàng"
+    "Go to cart": "Đến giỏ hàng",
+    "Account": "Tài khoản",
+    "Shopping": "Mua sắm",
+    "Settings": "Cài đặt",
+    "User": "Người dùng",
+    "Theme": "Giao diện",
+    "Language": "Ngôn ngữ"
   },
   "Home": {
     "Categories to explore": "Danh mục để khám phá",
@@ -123,7 +129,8 @@
     "Proceed to Checkout": "Tiến hành thanh toán",
     "Delete": "Xóa",
     "Update": "Cập nhật",
-    "Checkout": "Thanh toán"
+    "Checkout": "Thanh toán",
+    "Empty": "Giỏ hàng trống"
   },
   "Search": {
     "for": "cho",
