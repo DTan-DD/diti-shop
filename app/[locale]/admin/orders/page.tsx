@@ -6,10 +6,11 @@ import DeleteDialog from "@/components/shared/delete-dialog";
 import Pagination from "@/components/shared/pagination";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { deleteOrder, getAllOrders } from "@/lib/actions/order.actions";
+import { cancelOrder, deleteOrder, getAllOrders } from "@/lib/actions/order.actions";
 import { formatDateTime, formatId } from "@/lib/utils";
 import { IOrderList } from "@/types";
 import ProductPrice from "@/components/shared/product/product-price";
+import { startTransition } from "react";
 
 export const metadata: Metadata = {
   title: "Admin Orders",
@@ -52,13 +53,13 @@ export default async function OrdersPage(props: { searchParams: Promise<{ page: 
                   {" "}
                   <ProductPrice price={order.totalPrice} plain />
                 </TableCell>
-                <TableCell>{order.isPaid && order.paidAt ? formatDateTime(order.paidAt).dateTime : "No"}</TableCell>
+                <TableCell>{order.isPaid && order.paidAt ? formatDateTime(order.paidAt).dateTime : order.isCancelled ? "Cancelled" : "No"}</TableCell>
                 <TableCell>{order.isDelivered && order.deliveredAt ? formatDateTime(order.deliveredAt).dateTime : "No"}</TableCell>
                 <TableCell className="flex gap-1">
                   <Button asChild variant="outline" size="sm">
                     <Link href={`/admin/orders/${order._id}`}>Details</Link>
                   </Button>
-                  <DeleteDialog id={order._id} action={deleteOrder} />
+                  <DeleteDialog id={order._id} action={cancelOrder} />
                 </TableCell>
               </TableRow>
             ))}

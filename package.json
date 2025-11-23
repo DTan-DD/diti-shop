@@ -41,6 +41,7 @@
     "dotenv": "^17.2.3",
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
+    "inngest": "^3.46.0",
     "ioredis": "^5.8.2",
     "lucide-react": "^0.546.0",
     "mongodb": "^6.20.0",

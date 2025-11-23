@@ -1,95 +1,14 @@
-"use client";
+import { auth } from "@/auth";
+import UserButtonClient from "./user-button-client";
 
-import { Button, buttonVariants } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
-import { ChevronDownIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
-import { useSession } from "next-auth/react";
-import { handleLogoutClient } from "@/lib/handleLogoutClient";
-
-interface UserButtonClientProps {
+interface UserButtonProps {
   onSelect?: () => void;
 }
 
-export default function UserButtonClient({ onSelect }: UserButtonClientProps) {
-  const t = useTranslations();
-  const { data: session } = useSession();
+export default async function UserButton({ onSelect }: UserButtonProps) {
+  // Pre-fetch session ở server
+  const session = await auth();
 
-  const handleClick = () => {
-    onSelect?.();
-  };
-
-  return (
-    <div className="flex gap-2 items-center">
-      <DropdownMenu>
-        <DropdownMenuTrigger className="header-button" asChild>
-          <div className="flex items-center">
-            <div className="flex flex-col text-xs text-left">
-              <span>
-                {t("Header.Hello")}, {session?.user?.name || t("Header.sign in")}
-              </span>
-              <span className="font-bold">{t("Header.Account & Orders")}</span>
-            </div>
-            <ChevronDownIcon />
-          </div>
-        </DropdownMenuTrigger>
-
-        {session ? (
-          <DropdownMenuContent className="w-56" align="end" forceMount>
-            <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{session.user.name}</p>
-                <p className="text-xs leading-none text-muted-foreground">{session.user.email}</p>
-              </div>
-            </DropdownMenuLabel>
-
-            <DropdownMenuGroup>
-              <Link className="w-full" href="/account" onClick={handleClick}>
-                <DropdownMenuItem>{t("Header.Your account")}</DropdownMenuItem>
-              </Link>
-
-              <Link className="w-full" href="/account/orders" onClick={handleClick}>
-                <DropdownMenuItem>{t("Header.Your orders")}</DropdownMenuItem>
-              </Link>
-
-              {session.user.role === "Admin" && (
-                <Link className="w-full" href="/admin/overview" onClick={handleClick}>
-                  <DropdownMenuItem>{t("Header.Admin")}</DropdownMenuItem>
-                </Link>
-              )}
-            </DropdownMenuGroup>
-
-            <DropdownMenuItem className="p-0 mb-1">
-              <form action={handleLogoutClient} className="w-full">
-                <Button className="w-full py-4 px-2 h-4 justify-start" variant="ghost" onClick={handleClick}>
-                  {t("Header.Sign out")}
-                </Button>
-              </form>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        ) : (
-          <DropdownMenuContent className="w-56" align="end" forceMount>
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Link className={cn(buttonVariants(), "w-full")} href="/sign-in" onClick={handleClick}>
-                  {t("Header.Sign in")}
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-
-            <DropdownMenuLabel>
-              <div className="font-normal">
-                {t("Header.New Customer")}?{" "}
-                <Link href="/sign-up" onClick={handleClick}>
-                  {t("Header.Sign up")}
-                </Link>
-              </div>
-            </DropdownMenuLabel>
-          </DropdownMenuContent>
-        )}
-      </DropdownMenu>
-    </div>
-  );
+  // Pass session như prop hoặc dùng SessionProvider
+  return <UserButtonClient onSelect={onSelect} session={session} />;
 }

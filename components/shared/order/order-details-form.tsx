@@ -12,9 +12,10 @@ import { buttonVariants } from "@/components/ui/button";
 import ProductPrice from "../product/product-price";
 import ActionButton from "../action-button";
 import { deliverOrder, updateOrderToPaid } from "@/lib/actions/order.actions";
+import { isCancel } from "axios";
 
 export default function OrderDetailsForm({ order, isAdmin }: { order: IOrder; isAdmin: boolean }) {
-  const { shippingAddress, items, itemsPrice, taxPrice, shippingPrice, totalPrice, paymentMethod, isPaid, paidAt, isDelivered, deliveredAt, expectedDeliveryDate } = order;
+  const { shippingAddress, items, itemsPrice, taxPrice, shippingPrice, totalPrice, paymentMethod, isPaid, paidAt, isCancelled, isDelivered, deliveredAt, expectedDeliveryDate } = order;
 
   return (
     <div className="grid md:grid-cols-3 md:gap-5">
@@ -117,8 +118,8 @@ export default function OrderDetailsForm({ order, isAdmin }: { order: IOrder; is
               </Link>
             )}
 
-            {isAdmin && !isPaid && paymentMethod === "Cash On Delivery" && <ActionButton caption="Mark as paid" action={() => updateOrderToPaid(order._id)} />}
-            {isAdmin && isPaid && !isDelivered && <ActionButton caption="Mark as delivered" action={() => deliverOrder(order._id)} />}
+            {isAdmin && !isPaid && !isCancelled && paymentMethod === "Cash On Delivery" && <ActionButton caption="Mark as paid" action={() => updateOrderToPaid(order._id)} />}
+            {isAdmin && isPaid && !isCancelled && !isDelivered && <ActionButton caption="Mark as delivered" action={() => deliverOrder(order._id)} />}
           </CardContent>
         </Card>
       </div>

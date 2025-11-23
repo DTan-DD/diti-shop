@@ -7,7 +7,7 @@ const MongoId = z.string().regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid MongoD
 const Price = (field: string) =>
   z.coerce
     .number() //
-    .refine((value) => /^\d+(\.\d{2})?$/.test(formatNumberWithDecimal(value)), `${field} must have exactly two decimal places (e.g., 49.99)`);
+    .min(0, "Price must be greater than or equal to 0");
 
 export const ReviewInputSchema = z.object({
   product: MongoId,

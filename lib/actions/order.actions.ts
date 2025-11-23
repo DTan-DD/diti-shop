@@ -16,6 +16,7 @@ import mongoose from "mongoose";
 import { getSetting } from "./setting.actions";
 import { confirmStock, releaseStock, reserveStock } from "./stock.actions";
 import { acquireUserLock, releaseLock } from "../redisLock";
+import { inngest } from "@/inngest/client";
 
 // CREATE
 export const createOrder = async (clientSideCart: Cart) => {
@@ -115,6 +116,15 @@ export const createOrderFromCart = async (clientSideCart: Cart, userId: string) 
     // 4️⃣ Gọi reserveStock() (transaction + retry + Redis lock bên trong)
     try {
       const result = await reserveStock(createdOrder._id.toString());
+      if (order.paymentMethod === "MoMo") {
+        await inngest.send({
+          name: "app/order.created",
+          data: {
+            orderId: createdOrder._id.toString(),
+            ttlMinutes: 3, // hoặc 30, hoặc truyền theo logic của bạn
+          },
+        });
+      }
       console.log("Stock reserved:", result);
     } catch (error) {
       console.error("Stock reservation failed:", error);
@@ -177,6 +187,23 @@ export async function cancelOrder(orderId: string) {
   } catch (err) {
     return { success: false, message: formatError(err) };
   }
+}
+
+export async function cancelOrderInngestVersion(orderId: string) {
+  await connectToDatabase();
+  const order = await Order.findById(orderId);
+
+  if (!order) throw new Error("Order not found");
+  if (order.isPaid) throw new Error("Cannot cancel paid order");
+  if (order.isDelivered) throw new Error("Cannot cancel delivered order");
+
+  await releaseStock(orderId, "cancelled");
+
+  order.isCancelled = true;
+  order.cancelledAt = new Date();
+  await order.save();
+
+  return { success: true };
 }
 
 const updateProductStock = async (orderId: string) => {
