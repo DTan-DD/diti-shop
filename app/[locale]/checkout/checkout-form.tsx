@@ -300,7 +300,7 @@ const CheckoutForm = () => {
       // ⭐ STEP 0: Final sync to DB (if logged in)
       // ============================================
       if (isLoggedIn) {
-        console.log("🔄 Final cart sync before order...");
+        // console.log("🔄 Final cart sync before order...");
         await syncWithDB();
 
         // Wait a bit for sync to complete
@@ -310,7 +310,7 @@ const CheckoutForm = () => {
       // ============================================
       // ⭐ STEP 1: Validate stock one more time
       // ============================================
-      console.log("✅ Validating cart stock...");
+      // console.log("✅ Validating cart stock...");
       const stockValidation = await validateCartStock(items);
 
       if (stockValidation.hasIssues) {
@@ -374,7 +374,7 @@ const CheckoutForm = () => {
       // ============================================
       // STEP 3: Create order
       // ============================================
-      console.log("📦 Creating order...");
+      // console.log("📦 Creating order...");
       const res = await createOrder({
         items,
         shippingAddress,
@@ -419,7 +419,7 @@ const CheckoutForm = () => {
       // ============================================
       // ⭐ STEP 5: Success - Clear cart (syncs to DB)
       // ============================================
-      console.log("✅ Order created successfully");
+      // console.log("✅ Order created successfully");
 
       toast({
         title: "Order Placed!",
@@ -430,13 +430,9 @@ const CheckoutForm = () => {
       clearCart();
 
       // Redirect to order confirmation
-      // router.push(`/checkout/${res.data?.orderId}`);
-      console.log("res.data?.orderId", res.data?.orderId);
       setTimeout(() => {
         router.push(`/checkout/${res.data?.orderId}`);
       }, 200);
-      // console.log("availableDeliveryDates[deliveryDateIndex!].daysToDeliver", availableDeliveryDates[deliveryDateIndex!].daysToDeliver);
-      // router.push(`/`);
     } catch (error: any) {
       console.error("❌ Place order error:", error);
 

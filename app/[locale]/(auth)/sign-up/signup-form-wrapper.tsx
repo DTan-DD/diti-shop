@@ -31,7 +31,6 @@ export default function SignUpFormWrapper() {
     // Send OTP
     const result = await sendOTPAction(data.email, data.name);
     if (result.success) {
-      // console.log("success:: ", result);
       toast({
         description: result.message,
       });

@@ -44,8 +44,6 @@ export async function POST(req: Request) {
       lang: "vi",
     });
 
-    console.log(body);
-
     const response = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

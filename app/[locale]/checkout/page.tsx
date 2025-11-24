@@ -19,8 +19,6 @@ export default async function CheckoutPage() {
   await queryClient.prefetchQuery({
     queryKey: ["user", "profile"],
     queryFn: async () => {
-      // const session = await auth();
-      // console.log("session.user.id", session?.user.id);
       if (!session || !session.user?.id) {
         throw new Error("User is not authenticated");
       }
@@ -31,10 +29,8 @@ export default async function CheckoutPage() {
     redirect("/sign-in?callbackUrl=/checkout");
   }
   return (
-    // <SessionProvider session={session}>
     <HydrationBoundary state={dehydrate(queryClient)}>
       <CheckoutForm />
     </HydrationBoundary>
-    // </SessionProvider>
   );
 }

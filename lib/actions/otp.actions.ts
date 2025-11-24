@@ -37,7 +37,6 @@ export async function sendOTPAction(email: string, name: string) {
 
     // Send email
     const emailResult = await sendOTPEmail({ email, otp, userName: name });
-    console.log(emailResult);
     if (!emailResult.success) {
       console.error("Error sending email:", emailResult.error);
       return {

@@ -21,7 +21,7 @@ async function migrateStock() {
       },
     ]);
 
-    console.log(`✅ Updated ${updateProducts.modifiedCount} products`);
+    // console.log(`✅ Updated ${updateProducts.modifiedCount} products`);
 
     // 2. Cập nhật tất cả orders chưa delivered/cancelled
     const updateOrders = await Order.updateMany(
@@ -38,7 +38,7 @@ async function migrateStock() {
       }
     );
 
-    console.log(`✅ Updated ${updateOrders.modifiedCount} orders`);
+    // console.log(`✅ Updated ${updateOrders.modifiedCount} orders`);
 
     // 3. Tính toán lại reserved stock dựa trên orders đang pending
     const pendingOrders = await Order.find({
@@ -60,8 +60,8 @@ async function migrateStock() {
       }
     }
 
-    console.log(`✅ Processed ${pendingOrders.length} pending orders`);
-    console.log("✅ Migration completed successfully");
+    // console.log(`✅ Processed ${pendingOrders.length} pending orders`);
+    // console.log("✅ Migration completed successfully");
   } catch (error) {
     console.error("❌ Migration failed:", error);
   }

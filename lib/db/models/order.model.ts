@@ -40,6 +40,8 @@ const orderSchema = new Schema<IOrder>(
       // postalCode: { type: String, required: true },
       country: { type: String, required: true },
       province: { type: String, required: true },
+      district: { type: String, required: true },
+      ward: { type: String, required: true },
       phone: { type: String, required: true },
     },
     expectedDeliveryDate: { type: Date, required: true },

@@ -37,12 +37,15 @@ export default async function Header() {
       </div>
       <div className="flex items-center px-3 mb-px bg-gray-800">
         <Sidebar categories={categories} />
-        <div className="flex items-center gap-3 overflow-x-auto whitespace-nowrap">
-          {data.headerMenus.map((menu) => (
-            <Link href={menu.href} key={menu.href} className="header-button p-2! ">
-              {t("Header." + menu.name)}
-            </Link>
-          ))}
+        <div className="relative group">
+          {/* Menu bar */}
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-thin px-4 py-1">
+            {data.headerMenus.map((menu) => (
+              <Link href={menu.href} key={menu.href} className="header-button px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-200 hover:text-black transition-all duration-200 flex-shrink-0">
+                {t("Header." + menu.name)}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </DynamicHeaderWrapper>

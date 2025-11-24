@@ -8,13 +8,11 @@ import { formatError } from "@/lib/utils";
 export async function POST(req: Request) {
   await connectToDatabase();
   const data = await req.json();
-  console.log("data:: ", data);
   const { orderId, resultCode, amount } = data;
 
   try {
     const order = await Order.findById(orderId).populate("user", "email");
     if (!order) throw new Error("Order not found");
-    console.log("order:: ", order);
     if (resultCode === 0 && order.isPaid === false) {
       order.isPaid = true;
       order.paidAt = new Date();

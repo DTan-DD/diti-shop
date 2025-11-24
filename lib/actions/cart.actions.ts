@@ -6,7 +6,6 @@ import { connectToDatabase } from "@/lib/db";
 import Product from "@/lib/db/models/product.model";
 import { OrderItem } from "@/types";
 export async function validateCartStock(items: OrderItem[]) {
-  console.log("Product import:", Product);
   try {
     await connectToDatabase();
 

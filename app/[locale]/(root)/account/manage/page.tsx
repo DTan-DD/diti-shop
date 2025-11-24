@@ -16,12 +16,10 @@ export const metadata: Metadata = {
 export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const params = await searchParams;
   const session = await auth();
-  // console.log("session", session);
   const isOAuthUser = !session?.user?.hasPassword;
   const user = await getUserById();
   return (
     <div className="mb-24">
-      {/* <SessionProvider session={session}> */}
       {/* Show error if OAuth user tried to change password */}
       {(params.error === "oauth-no-password" || params.error === "oauth-no-email") && (
         <Alert variant="destructive" className="mb-4 max-w-2xl">
@@ -131,7 +129,6 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
           </div>
         </CardContent>
       </Card>
-      {/* </SessionProvider> */}
     </div>
   );
 }

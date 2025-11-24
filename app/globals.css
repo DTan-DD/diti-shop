@@ -151,4 +151,33 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   } */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #e5e7eb transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    height: 1px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 0 1rem;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #e5e7eb;
+    border-radius: 10px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #d1d5db;
+  }
+
+  /* Ẩn scrollbar khi không hover trên desktop */
+  @media (min-width: 1024px) {
+    .scrollbar-thin:not(:hover)::-webkit-scrollbar-thumb {
+      background: transparent;
+    }
+  }
 }

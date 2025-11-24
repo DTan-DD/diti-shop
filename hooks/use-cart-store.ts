@@ -69,12 +69,12 @@ const useCartStore = create(
         const { isSyncing, lastSyncedAt } = get();
 
         if (isSyncing) {
-          console.log("⏳ Cart initialization already in progress");
+          // console.log("⏳ Cart initialization already in progress");
           return;
         }
 
         if (lastSyncedAt && Date.now() - lastSyncedAt.getTime() < 5000) {
-          console.log("⏭️ Skipping initialization (too soon)");
+          // console.log("⏭️ Skipping initialization (too soon)");
           return;
         }
 
@@ -376,7 +376,7 @@ const useCartStore = create(
         return partialState as unknown as CartState;
       },
       onRehydrateStorage: () => (state) => {
-        console.log("🔄 Cart store rehydrated");
+        // console.log("🔄 Cart store rehydrated");
         state?.setHasHydrated(true);
       },
     }

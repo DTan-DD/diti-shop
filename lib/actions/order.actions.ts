@@ -32,7 +32,6 @@ export const createOrder = async (clientSideCart: Cart) => {
       data: { orderId: createdOrder._id.toString() },
     };
   } catch (error) {
-    console.log(error);
     return { success: false, message: formatError(error) };
   }
 };
@@ -121,11 +120,10 @@ export const createOrderFromCart = async (clientSideCart: Cart, userId: string) 
           name: "app/order.created",
           data: {
             orderId: createdOrder._id.toString(),
-            ttlMinutes: 3, // hoặc 30, hoặc truyền theo logic của bạn
+            ttlMinutes: 10, // hoặc 30, hoặc truyền theo logic của bạn
           },
         });
       }
-      console.log("Stock reserved:", result);
     } catch (error) {
       console.error("Stock reservation failed:", error);
       await Order.deleteOne({ _id: createdOrder._id });
@@ -373,7 +371,7 @@ export const calcDeliveryDateAndPrice = async ({ items, shippingAddress, deliver
   const deliveryDate = availableDeliveryDates[deliveryDateIndex === undefined ? availableDeliveryDates.length - 1 : deliveryDateIndex];
   const shippingPrice = !shippingAddress || !deliveryDate ? undefined : deliveryDate.freeShippingMinPrice > 0 && itemsPrice >= deliveryDate.freeShippingMinPrice ? 0 : deliveryDate.shippingPrice;
 
-  const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * 0.15);
+  const taxPrice = !shippingAddress ? undefined : itemsPrice * 0.1;
   const totalPrice = round2(itemsPrice + (shippingPrice ? round2(shippingPrice) : 0) + (taxPrice ? round2(taxPrice) : 0));
   return {
     availableDeliveryDates,

@@ -20,7 +20,6 @@ export default function AddToCart({ item, minimal = false }: { item: OrderItem; 
   const [quantity, setQuantity] = useState(1);
 
   const t = useTranslations();
-  // console.log("item", item);
   if (!_hasHydrated) {
     return null;
   }
@@ -43,7 +42,6 @@ export default function AddToCart({ item, minimal = false }: { item: OrderItem; 
             ),
           });
         } catch (error: any) {
-          console.log("1", error);
           toast({
             variant: "destructive",
             description: error.message,
@@ -78,7 +76,6 @@ export default function AddToCart({ item, minimal = false }: { item: OrderItem; 
             const itemId = await addItem(item, quantity);
             router.push(`/cart/${itemId}`);
           } catch (error: any) {
-            console.log("2", error);
             toast({
               variant: "destructive",
               description: error.message,
@@ -95,7 +92,6 @@ export default function AddToCart({ item, minimal = false }: { item: OrderItem; 
             addItem(item, quantity);
             router.push(`/checkout`);
           } catch (error: any) {
-            console.log("3", error);
             toast({
               variant: "destructive",
               description: error.message,

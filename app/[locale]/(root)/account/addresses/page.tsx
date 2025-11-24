@@ -25,7 +25,6 @@ export default async function AddressPage() {
     queryKey: ["user", "profile"],
     queryFn: async () => {
       const session = await auth();
-      // console.log("session.user.id", session?.user.id);
       if (!session || !session.user?.id) {
         throw new Error("User is not authenticated");
       }
@@ -35,7 +34,6 @@ export default async function AddressPage() {
 
   return (
     <div className="mb-24">
-      {/* <SessionProvider session={session}> */}
       <div className="flex gap-2 ">
         <Link href="/account">Tài khoản</Link>
         <span>›</span>
@@ -50,7 +48,6 @@ export default async function AddressPage() {
           </HydrationBoundary>
         </CardContent>
       </Card>
-      {/* </SessionProvider> */}
     </div>
   );
 }

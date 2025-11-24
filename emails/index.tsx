@@ -64,9 +64,7 @@ export const sendOTPEmail = async ({ email, otp, userName }: { email: string; ot
       }),
     });
 
-    console.log(response);
     const text = await response.text();
-    console.log(response.status, response.statusText, text);
     if (!response.ok) {
       throw new Error("Brevo API error");
     }

@@ -20,8 +20,6 @@ import { useUpdateProfile } from "@/hooks/useUpdateProfile";
 
 export const ProfileForm = () => {
   const router = useRouter();
-  // const { data: session, update } = useSession();
-  // console.log(session);
   const { toast } = useToast();
   const { data: user } = useQuery<{ phone?: string; address?: { fullName?: string; country?: string; province?: string; district?: string; ward?: string; street?: string } }>({
     queryKey: ["user", "profile"],
@@ -100,7 +98,6 @@ export const ProfileForm = () => {
   }, [wards.length, user?.address?.ward]);
 
   async function onSubmit(values: z.infer<typeof UserAddressSchema>) {
-    // console.log("values:: ", values);
     try {
       const addressData = {
         ...values,
@@ -109,8 +106,6 @@ export const ProfileForm = () => {
         ward: selectedWardId,
         fullName: values.fullName.trim(),
       };
-
-      // console.log(addressData);
 
       // const res = await updateUserAddress(addressData);
       const res = await updateProfile.mutateAsync({ address: addressData });

@@ -1,6 +1,6 @@
 "use client";
 import useSettingStore from "@/hooks/use-setting-store";
-import { cn, round2 } from "@/lib/utils";
+import { cn, formatCurrency, round2 } from "@/lib/utils";
 import { useFormatter, useTranslations } from "next-intl";
 
 const ProductPrice = ({
@@ -21,7 +21,7 @@ const ProductPrice = ({
   const { getCurrency } = useSettingStore();
   const currency = getCurrency();
   const t = useTranslations();
-  const convertedPrice = round2(currency.convertRate * price);
+  const convertedPrice = currency.convertRate * price;
   const convertedListPrice = round2(currency.convertRate * listPrice);
 
   const format = useFormatter();
@@ -37,9 +37,9 @@ const ProductPrice = ({
     })
   ) : convertedListPrice == 0 ? (
     <div className={cn("text-3xl", className)}>
-      {intValue}
-      <span className="text-xs align-super">{floatValue}</span>
-      <span className="text-xs align-super">{currency.symbol}</span>
+      {formatCurrency(convertedPrice)}
+      {/* <span className="text-xs align-super">{floatValue}</span>
+      <span className="text-xs align-super">{currency.symbol}</span> */}
     </div>
   ) : isDeal ? (
     <div className="space-y-2">
@@ -51,7 +51,7 @@ const ProductPrice = ({
       </div>
       <div className={`flex ${forListing && "justify-center"} items-center gap-2`}>
         <div className={cn("text-3xl", className)}>
-          {intValue}
+          {formatCurrency(convertedPrice)}
           <span className="text-xs align-super">{floatValue}</span>
           <span className="text-xs align-super">{currency.symbol}</span>
         </div>
@@ -72,8 +72,8 @@ const ProductPrice = ({
       <div className="flex justify-center gap-3">
         <div className="text-3xl text-orange-700">-{discountPercent}%</div>
         <div className={cn("text-3xl", className)}>
-          <span className="text-xs align-super">{currency.symbol}</span>
-          {intValue}
+          {formatCurrency(convertedPrice)}
+          {/* <span className="text-xs align-super">{currency.symbol}</span> */}
           <span className="text-xs align-super">{floatValue}</span>
         </div>
       </div>

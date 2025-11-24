@@ -24,13 +24,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // ✅ FIX 1: Đợi cả session và zustand hydrate
     if (status === "loading" || !_hasHydrated) {
-      console.log("⏳ Waiting for hydration...", { status, _hasHydrated });
+      // console.log("⏳ Waiting for hydration...", { status, _hasHydrated });
       return;
     }
 
     // ✅ FIX 2: Tránh double initialization
     if (isInitializing.current) {
-      console.log("⏭️ Initialization already in progress");
+      // console.log("⏭️ Initialization already in progress");
       return;
     }
 
@@ -41,7 +41,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     // CASE 1: Initial Load
     // ============================================
     if (!isInitialized) {
-      console.log("🚀 CartProvider: Initial load", { isLoggedIn, userId });
+      // console.log("🚀 CartProvider: Initial load", { isLoggedIn, userId });
 
       isInitializing.current = true;
 
@@ -49,7 +49,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       initializeCart(userId)
         .then(() => {
-          console.log("✅ Cart initialized");
+          // console.log("✅ Cart initialized");
           setIsInitialized(true);
           setPrevUserId(userId || null);
         })
@@ -69,7 +69,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     // CASE 2: User Just Logged In
     // ============================================
     if (!prevUserId && userId) {
-      console.log("🔐 CartProvider: User logged in", { userId });
+      // console.log("🔐 CartProvider: User logged in", { userId });
 
       isInitializing.current = true;
 
@@ -84,7 +84,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               duration: 6000,
             });
           }
-          console.log("✅ Cart merged on login", result);
+          // console.log("✅ Cart merged on login", result);
           setPrevUserId(userId);
         })
         .catch((error) => {
@@ -107,7 +107,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     // CASE 3: User Logged Out
     // ============================================
     if (prevUserId && !userId) {
-      console.log("🚪 CartProvider: User logged out");
+      // console.log("🚪 CartProvider: User logged out");
 
       isInitializing.current = true;
 
@@ -115,7 +115,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       initializeCart()
         .then(() => {
-          console.log("✅ Guest cart restored");
+          // console.log("✅ Guest cart restored");
           setPrevUserId(null);
         })
         .catch((error) => {
@@ -133,7 +133,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     // CASE 4: User Switched Accounts
     // ============================================
     if (prevUserId && userId && prevUserId !== userId) {
-      console.log("🔄 CartProvider: Account switch", { from: prevUserId, to: userId });
+      // console.log("🔄 CartProvider: Account switch", { from: prevUserId, to: userId });
 
       isInitializing.current = true;
 
@@ -141,7 +141,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       initializeCart(userId)
         .then(() => {
-          console.log("✅ New user cart loaded");
+          // console.log("✅ New user cart loaded");
           setPrevUserId(userId);
         })
         .catch((error) => {
